@@ -4,10 +4,10 @@
 (() => {
   let allPages = [];
   let allProblems = [];
-  $.getJSON("/data/allpages.json", (json) => {
+  $.getJSON("data/allpages.json", (json) => {
     allPages = json;
   });
-  $.getJSON("/data/allproblems.json", (json) => {
+  $.getJSON("data/allproblems.json", (json) => {
     allProblems = json;
   });
   let categoryPages = [];
@@ -92,7 +92,7 @@
       <input class="input-field"
         id="input-name" type="text" placeholder="Custom title"/>
       <input class="input-field"
-        id="input-break" type="number" min="1" max="40"
+        id="input-break" type="number" min="1" max="500"
         placeholder="Page break every n problems"/>
       <div class="input-container checkbox-container input-flex-full"> 
         <div class="checkbox-wrap" id="sort-container">
@@ -264,7 +264,7 @@
         $("#dark-toggle").text("Light theme");
       } else {
         $("#stylesheet-link").after(
-          `<link id="dark-stylesheet-link" href="/src/dark.css" rel="stylesheet" />`
+          `<link id="dark-stylesheet-link" href="src/dark.css" rel="stylesheet" />`
         );
 
         localStorage.setItem("darkTheme", true);
@@ -1900,7 +1900,7 @@
       max: 10,
       from: 0,
       to: 10,
-      step: 0.5,
+      step: 0.1,
     });
 
     if (!JSON.parse(localStorage.getItem("autogenOff")))
@@ -2196,12 +2196,12 @@
       max: 10,
       from: 0,
       to: 10,
-      step: 0.5,
+      step: 0.1,
     });
     $("#input-number").ionRangeSlider({
       grid: true,
       min: 0,
-      max: 40,
+      max: 500,
       from: 5,
     });
 
@@ -3622,7 +3622,7 @@
               problemsList
                 .map((e) => titleCleanup(e))
                 .join(", ")
-                .substring(0, 40) + "...";
+                .substring(0, 500) + "...";
             localStorage.setItem("pageHistory", JSON.stringify(pageHistory));
 
             history.replaceState(
@@ -4290,7 +4290,7 @@
       problems
         .map((e) => titleCleanup(e))
         .join(", ")
-        .substring(0, 40) + "...";
+        .substring(0, 500) + "...";
     let sanitizedSnippet = sanitize(snippet);
 
     if (history)
