@@ -92,7 +92,7 @@
       <input class="input-field"
         id="input-name" type="text" placeholder="Custom title"/>
       <input class="input-field"
-        id="input-break" type="number" min="1" max="500"
+        id="input-break" type="number" min="1" max="1000"
         placeholder="Page break every n problems"/>
       <div class="input-container checkbox-container input-flex-full"> 
         <div class="checkbox-wrap" id="sort-container">
@@ -427,13 +427,21 @@
     );
   }
 
+  function defaultName() {
+    let inputDiff = $("#input-diff");
+    let diffFrom = inputDiff.data().from;
+    let diffTo = inputDiff.data().to;
+    let inputYears = $("#input-years");
+    let yearFrom = inputYears.data().from;
+    let yearTo = inputYears.data().to;
+    let now= new Date().toLocaleString("en-UK",{ year: "numeric", month: "short", day: "numeric" });
+    return `Problem Set (${diffFrom} - ${diffTo}) - (${yearFrom} - ${yearTo}) - ${now}`;
+  }
+
   function addBatch() {
     $(".notes").before(
       `<div class="problem-section">
-      <h2 class="section-header" id="batch-header">Problem Set - ${new Date().toLocaleString(
-        "en-UK",
-        { year: "numeric", month: "short", day: "numeric" }
-      )}</h2>
+      <h2 class="section-header" id="batch-header">${defaultName()}</h2>
       <div class="article-text" id="batch-text"></div>
     </div>
     <div class="problem-section section-collapsed" id="solutions-section">
@@ -466,10 +474,7 @@
         </button>
       </div>${moreOptions}
       <div class="problem-section">
-        <h2 class="section-header" id="batch-header">Problem Set - ${new Date().toLocaleString(
-          "en-UK",
-          { year: "numeric", month: "short", day: "numeric" }
-        )}</h2>
+        <h2 class="section-header" id="batch-header">${defaultName()}</h2>
         <div class="article-text" id="batch-text"></div>
       </div>
       <div class="problem-section section-collapsed" id="solutions-section">
@@ -1889,7 +1894,7 @@
       grid: true,
       min: 1974,
       max: 2022,
-      from: 2010,
+      from: 2000,
       to: 2022,
       prettify_enabled: false,
     });
@@ -1916,7 +1921,7 @@
   $(".page-container").on("click", "#amc8-test", () => {
     $("#problem-batch").click();
     $("#input-tests").data("tagify").addTags(["AMC 8"]);
-    $("#input-diff").data("ionRangeSlider").update({ from: 0, to: 2 });
+    $("#input-diff").data("ionRangeSlider").update({ from: 0, to: 2.1 });
     $("#input-number").data("ionRangeSlider").update({ from: 25 });
     $("#ranbatch-button").click();
   });
@@ -2185,7 +2190,7 @@
       grid: true,
       min: 1974,
       max: 2022,
-      from: 2010,
+      from: 2000,
       to: 2022,
       prettify_enabled: false,
     });
@@ -2201,7 +2206,7 @@
     $("#input-number").ionRangeSlider({
       grid: true,
       min: 0,
-      max: 500,
+      max: 1000,
       from: 5,
     });
 
@@ -2723,6 +2728,7 @@
       hideLinks();
       breakSets();
       addBatchAnswers(problems.map((e) => e.title));
+
     }
   });
 
@@ -3622,7 +3628,7 @@
               problemsList
                 .map((e) => titleCleanup(e))
                 .join(", ")
-                .substring(0, 500) + "...";
+                .substring(0, 1000) + "...";
             localStorage.setItem("pageHistory", JSON.stringify(pageHistory));
 
             history.replaceState(
@@ -3875,7 +3881,7 @@
       $("#batch-header").html(sanitize(name));
       document.title = sanitize(name) + " - Trivial Math Practice";
     } else {
-      document.title = "Problem Set - Trivial Math Practice";
+      document.title = defaultName();
     }
   }
 
@@ -4290,7 +4296,7 @@
       problems
         .map((e) => titleCleanup(e))
         .join(", ")
-        .substring(0, 500) + "...";
+        .substring(0, 1000) + "...";
     let sanitizedSnippet = sanitize(snippet);
 
     if (history)

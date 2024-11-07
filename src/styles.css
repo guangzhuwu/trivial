@@ -1563,22 +1563,24 @@ footer {
   /* Font fixes */
   body,
   .article-text {
-    color: black;
-    font-size: 14pt;
-    margin-left: -1.8rem;
+    margin-right: -0.8em;
+    margin-left: -1.0rem;
     padding-top: -1.8rem;
+    color: black;
+    font: 16.5pt / 1.15 "Latin Modern Sans", sans-serif;
+    /*font-size: 16pt;*/
   }
 
   .article-text h1 {
+    padding-top: 1.5rem;
     font-size: 16pt;
     line-height: 1.1rem;
-    padding-top: 1.5rem;
   }
 
   .article-text h2 {
+    padding-top: 1.8rem;
     color: #5da5e4;
     font-size: 15pt;
-    padding-top: 1.8rem;
   }
 
   .article-text h3 {
@@ -1586,7 +1588,7 @@ footer {
   }
 
   img.latex {
-    transform: scale(0.9);
+    transform: scale(0.8);
   } /**/
 
   /* Prettier */
