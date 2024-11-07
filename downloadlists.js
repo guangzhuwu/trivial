@@ -4,11 +4,10 @@ import fs from "fs";
 (async () => {
   let allPages = [];
   let allProblems = [];
+  let numPages = 16000;
 
   let validProblem = (problem) =>
-    problem.includes("Problems/Problem") &&
-    problem.match(/^\d{4}/) &&
-    problem.match(/\d+$/);
+    problem.match(/^\d{4} .* Problems\/Problem [A-Z]?\d+$/);
 
   let computeTest = (problem) =>
     problem
@@ -41,7 +40,7 @@ import fs from "fs";
   }
 
   while (json?.continue) {
-    console.log(`${Math.round((allPages.length / 14000) * 100)}% loaded...`);
+    console.log(`${Math.round((allPages.length / numPages) * 100)}% loaded...`);
     paramsContinue = params + `&apcontinue=${json.continue.apcontinue}`;
     response = await fetch(`${apiEndpoint}?${paramsContinue}&origin=*`);
     json = await response.json();
@@ -61,14 +60,21 @@ import fs from "fs";
       "data/allpages.json",
       JSON.stringify(allPages, undefined, 2)
     );
-  } catch (err) {
-    console.error(err);
-  }
-  try {
     fs.writeFileSync(
       "data/allproblems.json",
       JSON.stringify(allProblems, undefined, 2)
     );
+  } catch (err) {
+    console.error(err);
+  }
+  try {
+    let roundedLength = Math.ceil(allPages.length / 500) * 500;
+    let code = fs.readFileSync("downloadlists.js", "utf8");
+    code = code.replace(
+      /let numPages = \d*?;/,
+      `let numPages = ${roundedLength};`
+    );
+    fs.writeFileSync("downloadlists.js", code);
   } catch (err) {
     console.error(err);
   }

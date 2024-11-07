@@ -388,7 +388,7 @@ header {
   background: var(--item-color);
   border: none;
   box-shadow: var(--secondary-box-shadow);
-  -webkit-appearance: none;
+  appearance: none;
 }
 
 .input-field:focus {
@@ -864,6 +864,7 @@ tags > :is(tag, span) {
 }
 
 #batchans-section.batchans-scoreonly :is(.feedback-item, .feedback-answer),
+#batchans-section.batchans-checkonly .feedback-answer,
 #batchans-section:not(.batchans-amcscore) #amc-score {
   display: none;
 } /**/
