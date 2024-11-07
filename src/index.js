@@ -19,7 +19,7 @@
     AIME: ["I", "II"],
   };
   let validYears = {
-    "AMC 8": { min: 1999, max: 2023 },
+    "AMC 8": { min: 1999, max: 2024 },
     "AMC 10": { min: 2000, max: 2001 },
     "AMC 10A": { min: 2002, max: 2023 },
     "AMC 10B": { min: 2002, max: 2023 },
@@ -31,11 +31,11 @@
     "AMC 12Fall A": { min: 2021, max: 2021 },
     "AMC 12Fall B": { min: 2021, max: 2021 },
     AIME: { min: 1983, max: 1999 },
-    AIMEI: { min: 2000, max: 2023 },
-    AIMEII: { min: 2000, max: 2023 },
-    USAJMO: { min: 2010, max: 2023 },
-    USAMO: { min: 1972, max: 2023 },
-    IMO: { min: 1959, max: 2023 },
+    AIMEI: { min: 2000, max: 2024 },
+    AIMEII: { min: 2000, max: 2024 },
+    USAJMO: { min: 2010, max: 2024 },
+    USAMO: { min: 1972, max: 2024 },
+    IMO: { min: 1959, max: 2024 },
     AJHSME: { min: 1985, max: 1998 },
     AHSME: { min: 1974, max: 1999 },
   };
@@ -1807,7 +1807,7 @@
         <input class="input-field"
           type="number"
           min="1974"
-          max="2022"
+          max="2024"
           id="input-singleyear"
           placeholder="Year">
         </input>
@@ -1890,9 +1890,9 @@
       type: "double",
       grid: true,
       min: 1974,
-      max: 2022,
+      max: 2024,
       from: 2010,
-      to: 2022,
+      to: 2024,
       prettify_enabled: false,
     });
     $("#input-diff").ionRangeSlider({
@@ -2022,7 +2022,7 @@
           placeholder="Version"
           data-whitelist="A,B,Fall A,Fall B,I,II">
         </input>
-          <input class="input-field" type="number" min="1974" max="2022"
+          <input class="input-field" type="number" min="1974" max="2024"
           id="input-singleyear" placeholder="Year">
           </input>
         <button class="input-button" id="batch-button">
@@ -2186,9 +2186,9 @@
       type: "double",
       grid: true,
       min: 1974,
-      max: 2022,
+      max: 2024,
       from: 2010,
-      to: 2022,
+      to: 2024,
       prettify_enabled: false,
     });
     $("#input-diff").ionRangeSlider({
