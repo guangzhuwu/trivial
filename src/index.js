@@ -222,7 +222,7 @@ async function jsonp_fetch(src, options = {}) {
     }, {
         value: "Olympiad Trigonometry Problems",
         shortName: "Oly Trig"
-    }, ];
+    },];
 
     function subjectTag(tagData) {
         return `<tag title="${tagData.value}" contenteditable="false" spellcheck="false" tabindex="-1" class="tagify__tag " value="${tagData.value}">
@@ -470,7 +470,8 @@ async function jsonp_fetch(src, options = {}) {
             let problemProblem = getProblem(problemText);
             let problemSolutions = getSolutions(problemText);
 
-            if (problemProblem && problemSolutions) {} else if (problemText.includes("Redirect to:")) {
+            if (problemProblem && problemSolutions) {
+            } else if (problemText.includes("Redirect to:")) {
                 console.log("Redirect problem, going there instead...");
 
                 let redirHref = $($.parseHTML(problemText))
@@ -1088,7 +1089,7 @@ async function jsonp_fetch(src, options = {}) {
             $("#number-score").text(`Correct: ${rightAnswers}/${totalAnswers}`);
             $("#amc-score").html(`<span class="score-num">Score: ${rightAnswers * 6 + blankAnswers * 1.5}</span>`);
 
-            let statTests = ["AMC 8", "AMC 10A", "AMC 10B", "AMC 12A", "AMC 12B", "AIME I", "AIME II", ];
+            let statTests = ["AMC 8", "AMC 10A", "AMC 10B", "AMC 12A", "AMC 12B", "AIME I", "AIME II",];
             if (testName && statTests.includes(testName)) {
                 let apiEndpoint = "https://artofproblemsolving.com/wiki/api.php";
                 let params = `action=parse&page=AMC_historical_results&format=json`;
@@ -2391,17 +2392,19 @@ async function jsonp_fetch(src, options = {}) {
                 }
             }
             while (randomList.length + problems.length < numProblems && pages.length !== 0 && clickedTimes === clickedTimesThen) {
-                let blockedProblem = true;
-
-                while (blockedProblem) {
+                while (true) {
                     pageIndex = Math.floor(Math.random() * pages.length);
                     randomPage = pages[pageIndex];
 
-                    blockedProblem = skipProblems.includes(randomPage);
-                    if (blockedProblem) pages.splice(pageIndex, 1);
+                    let blockedProblem = skipProblems.includes(randomPage);
+                    if (blockedProblem) {
+                        pages.splice(pageIndex, 1);
+                    } else {
+                        randomList.push(randomPage);
+                        pages.splice(pageIndex, 1);
+                        break
+                    }
                 }
-                randomList.push(randomPage);
-                pages.splice(pageIndex, 1);
             }
 
             let paramsList = randomList.map((currentProblem) => `action=parse&page=${currentProblem}&format=json`);
@@ -2838,7 +2841,7 @@ async function jsonp_fetch(src, options = {}) {
                         value: numWrong,
                         text: numWrong ? numWrong + "✗" : "",
                         sortOrder: 3,
-                    }, ],
+                    },],
                 },
                 encoding: {
                     theta: {
@@ -2852,7 +2855,7 @@ async function jsonp_fetch(src, options = {}) {
                         legend: null,
                         scale: {
                             domain: ["Correct", "Retry", "Incorrect"],
-                            range: ["var(--correct-color)", "var(--retry-color)", "var(--wrong-color)", ],
+                            range: ["var(--correct-color)", "var(--retry-color)", "var(--wrong-color)",],
                         },
                         sort: {
                             field: "sortOrder"
@@ -2915,7 +2918,7 @@ async function jsonp_fetch(src, options = {}) {
                             value: (((numCorrect + numRetry) / numAnswered) * 100).toFixed(1) + "%",
                         },
                     },
-                }, ],
+                },],
                 background: null,
                 config: {
                     font: "'Latin Modern Sans', 'Inter', sans-serif",
@@ -3565,7 +3568,7 @@ async function jsonp_fetch(src, options = {}) {
                     "Start difficulty": 4,
                     "End difficulty": 9.5,
                     Level: "Olympiad",
-                }, ],
+                },],
             },
             mark: "bar",
             encoding: {
@@ -3640,7 +3643,7 @@ async function jsonp_fetch(src, options = {}) {
             url: url,
             title: cleanedPage,
             snippet: sanitizedSnippet,
-        }, ];
+        },];
         if (history.length > 50) history.pop();
         history = [...new Map(history.map((item) => [item.title, item])).values()];
 
@@ -3665,7 +3668,7 @@ async function jsonp_fetch(src, options = {}) {
             url: url,
             title: cleanedPage,
             snippet: sanitizedSnippet,
-        }, ];
+        },];
         if (history.length > 50) history.pop();
         history = [...new Map(history.map((item) => [item.title, item])).values()];
 
