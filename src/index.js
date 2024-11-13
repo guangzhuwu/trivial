@@ -16,7 +16,11 @@ async function jsonp_fetch(src, options = {}) {
         script.src = url;
         script.async = true;
         script.onerror = () => {
-            reject(new Error('Script load failed'));
+            //let error = new Error('Script load failed');
+            //reject(error);
+            if (options.onError) {
+                options.onError();
+            }
         };
         window[callbackName] = (data) => {
             script.remove();
@@ -26,6 +30,9 @@ async function jsonp_fetch(src, options = {}) {
                 statusText: data.statusText,
                 headers: data.headers
             }));
+            if (options.onSuccess) {
+                options.onSuccess(null);
+            }
         };
         document.head.appendChild(script);
     });
@@ -2407,9 +2414,17 @@ async function jsonp_fetch(src, options = {}) {
                 }
             }
 
+
+            let fetchCounter = 0
+
+            function fetchProgress() {
+                fetchCounter += 1;
+                $(".loading-bar").css("width", `${((fetchCounter / numProblems) * 50)}%`);
+            }
+
             let paramsList = randomList.map((currentProblem) => `action=parse&page=${currentProblem}&format=json`);
             console.log(paramsList);
-            let responseList = await Promise.all(paramsList.map((params) => jsonp_fetch(`${apiEndpoint}?${params}&origin=*`)));
+            let responseList = await Promise.all(paramsList.map((params) => jsonp_fetch(`${apiEndpoint}?${params}&origin=*`, {'onSuccess': fetchProgress})));
             console.log(responseList);
             let jsonList = await Promise.all(responseList.map((response) => response.json()));
             console.log(jsonList);
@@ -2427,7 +2442,7 @@ async function jsonp_fetch(src, options = {}) {
                         solutions: problemSolutions,
                     });
 
-                    $(".loading-bar").css("width", `${(problems.length / numProblems) * 100}%`);
+                    $(".loading-bar").css("width", `${50 + (problems.length / numProblems) * 50}%`);
                 } else if (problemText.includes("Redirect to:")) {
                     console.log("Redirect problem, going there instead...");
 
@@ -2440,7 +2455,7 @@ async function jsonp_fetch(src, options = {}) {
                     console.log(redirPage);
                     redirList.push(redirPage);
 
-                    $(".loading-bar").css("width", `${(problems.length / numProblems) * 100}%`);
+                    $(".loading-bar").css("width", `${50 + (problems.length / numProblems) * 50}%`);
                 } else {
                     console.log("Invalid problem, skipping...");
 
@@ -2474,9 +2489,16 @@ async function jsonp_fetch(src, options = {}) {
             }
 
             if (redirList[0]) {
+                let redirectCounter = 0
+
+                function redirectProgress() {
+                    redirectCounter += 1;
+                    $(".loading-bar").css("width", `${(problems.length + redirectCounter) / numProblems * 100}%`);
+                }
+
                 paramsList = redirList.map((redirPage) => `action=parse&page=${redirPage}&format=json`);
                 console.log(paramsList);
-                responseList = await Promise.all(paramsList.map((params) => jsonp_fetch(`${apiEndpoint}?${params}&origin=*`)));
+                responseList = await Promise.all(paramsList.map((params) => jsonp_fetch(`${apiEndpoint}?${params}&origin=*`, {'onSuccess': redirectProgress})));
                 console.log(responseList);
                 jsonList = await Promise.all(responseList.map((response) => response.json()));
                 console.log(jsonList);
