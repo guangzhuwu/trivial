@@ -1,4 +1,3 @@
-import fetch from "node-fetch";
 import fs from "fs";
 
 (async () => {
@@ -12,7 +11,7 @@ import fs from "fs";
   let computeTest = (problem) =>
     problem
       .match(/(\d{4} )(.*)( Problems)/)[2]
-      .replace(/AMC ((?:10)|(?:12))[AB]/, "AMC $1")
+        .replace(/AMC (10|12)[AB]/, "AMC $1")
       .replace(/AIME I+/, "AIME")
       .replace(/AJHSME/, "AMC 8");
   let computeYear = (problem) => problem.match(/^\d{4}/)[0];
