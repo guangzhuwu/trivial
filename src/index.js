@@ -42,6 +42,9 @@ async function jsonp_fetch(src, options = {}) {
 (() => {
     let allPages = [];
     let allProblems = [];
+    let maxYear = new Date().getFullYear();
+    if (new Date().getMonth() < 10) maxYear -= 1
+
     $.getJSON("data/allpages.json", (json) => {
         allPages = json;
     });
@@ -59,7 +62,7 @@ async function jsonp_fetch(src, options = {}) {
     let validYears = {
         "AMC 8": {
             min: 1999,
-            max: 2023
+            max: maxYear
         },
         "AMC 10": {
             min: 2000,
@@ -67,11 +70,11 @@ async function jsonp_fetch(src, options = {}) {
         },
         "AMC 10A": {
             min: 2002,
-            max: 2022
+            max: maxYear
         },
         "AMC 10B": {
             min: 2002,
-            max: 2022
+            max: maxYear
         },
         "AMC 10Fall A": {
             min: 2021,
@@ -87,11 +90,11 @@ async function jsonp_fetch(src, options = {}) {
         },
         "AMC 12A": {
             min: 2002,
-            max: 2022
+            max: maxYear
         },
         "AMC 12B": {
             min: 2002,
-            max: 2022
+            max: maxYear
         },
         "AMC 12Fall A": {
             min: 2021,
@@ -107,23 +110,23 @@ async function jsonp_fetch(src, options = {}) {
         },
         AIMEI: {
             min: 2000,
-            max: 2023
+            max: maxYear
         },
         AIMEII: {
             min: 2000,
-            max: 2022
+            max: maxYear
         },
         USAJMO: {
             min: 2010,
-            max: 2022
+            max: maxYear
         },
         USAMO: {
             min: 1972,
-            max: 2022
+            max: maxYear
         },
         IMO: {
             min: 1959,
-            max: 2022
+            max: maxYear
         },
         AJHSME: {
             min: 1985,
@@ -253,7 +256,7 @@ async function jsonp_fetch(src, options = {}) {
                   <input class="input-field"
                     id="input-name" type="text" placeholder="Custom title"/>
                   <input class="input-field"
-                    id="input-break" type="number" min="1" max="1000"
+                    id="input-break" type="number" min="1" max="2000"
                     placeholder="Page break every n problems"/>
                   <div class="input-container checkbox-container input-flex-full"> 
                     <div class="checkbox-wrap" id="sort-container">
@@ -1525,7 +1528,7 @@ async function jsonp_fetch(src, options = {}) {
                     <input class="input-field"
                       type="number"
                       min="1974"
-                      max="2022"
+                      max="${maxYear}"
                       id="input-singleyear"
                       placeholder="Year">
                     
@@ -1605,9 +1608,9 @@ async function jsonp_fetch(src, options = {}) {
             type: "double",
             grid: true,
             min: 1974,
-            max: 2022,
+            max: maxYear,
             from: 2000,
-            to: 2022,
+            to: maxYear,
             prettify_enabled: false,
         });
         $("#input-diff").ionRangeSlider({
@@ -1617,7 +1620,7 @@ async function jsonp_fetch(src, options = {}) {
             max: 10,
             from: 0,
             to: 10,
-            step: 0.1,
+            step: 0.05,
         });
 
         if (!JSON.parse(localStorage.getItem("autogenOff"))) $("#random-button").trigger('click');
@@ -1770,7 +1773,7 @@ async function jsonp_fetch(src, options = {}) {
                       placeholder="Version"
                       data-whitelist="A,B,Fall A,Fall B,I,II">
                     
-                      <input class="input-field" type="number" min="1974" max="2022"
+                      <input class="input-field" type="number" min="1974" max="${maxYear}"
                       id="input-singleyear" placeholder="Year">
                       
                     <button class="input-button" id="batch-button">
@@ -1918,9 +1921,9 @@ async function jsonp_fetch(src, options = {}) {
             type: "double",
             grid: true,
             min: 1974,
-            max: 2022,
+            max: maxYear,
             from: 2000,
-            to: 2022,
+            to: maxYear,
             prettify_enabled: false,
         });
         $("#input-diff").ionRangeSlider({
@@ -1930,12 +1933,12 @@ async function jsonp_fetch(src, options = {}) {
             max: 10,
             from: 0,
             to: 10,
-            step: 0.1,
+            step: 0.05,
         });
         $("#input-number").ionRangeSlider({
             grid: true,
             min: 0,
-            max: 1000,
+            max: 2000,
             from: 5,
         });
 
