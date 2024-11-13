@@ -2,46 +2,50 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-
 async function jsonp_fetch(src, options = {}) {
     if (typeof jsonp_fetch.counter === 'undefined') {
         jsonp_fetch.counter = 0;
     } else {
         jsonp_fetch.counter += 1;
     }
+
     return new Promise((resolve, reject) => {
         const callbackName = `jsonp_${Date.now()}_${jsonp_fetch.counter}_${Math.random().toString(36).replace('.', '')}`;
-        const url = src.indexOf('?') !== -1 ? `${src}&callback=${callbackName}` : `${src}?callback=${callbackName}`;
+        const url = `${src}${src.indexOf('?') === -1 ? '?' : '&'}callback=${callbackName}`; // Use template literal
         const script = document.createElement('script');
         script.src = url;
         script.async = true;
+
         script.onerror = () => {
-            //let error = new Error('Script load failed');
-            //reject(error);
-            reject(new Response(JSON.stringify(''), {
+            const response = new Response(JSON.stringify(''), {
                 status: 408,
-                statusText: 'Request Timeout'
-            }));
+                statusText: "Script load failed",
+            });
+            console.log(response);
+            resolve(response);
             if (options.onError) {
-                options.onError();
+                const error = new Error('Script load failed');
+                options.onError(error); // Pass the error object
             }
         };
+
         window[callbackName] = (data) => {
             script.remove();
             delete window[callbackName];
-            resolve(new Response(JSON.stringify(data), {
+            const response = new Response(JSON.stringify(data), {
                 status: data.status,
                 statusText: data.statusText,
-                headers: data.headers
-            }));
+                headers: data.headers,
+            });
+            resolve(response);
             if (options.onSuccess) {
-                options.onSuccess(null);
+                options.onSuccess(data); // Pass the data
             }
         };
+
         document.head.appendChild(script);
     });
 }
-
 
 (() => {
     let allPages = [];
@@ -480,7 +484,7 @@ async function jsonp_fetch(src, options = {}) {
         let finalPage = pagename;
 
         if (json?.parse) {
-            let problemText = latexer(json.parse.text["*"]);
+            let problemText = (json?.parse) ? latexer(json.parse.text["*"]) : '';
             let problemProblem = getProblem(problemText);
             let problemSolutions = getSolutions(problemText);
 
@@ -499,7 +503,7 @@ async function jsonp_fetch(src, options = {}) {
                 params = `action=parse&page=${redirPage}&format=json`;
                 response = await jsonp_fetch(`${apiEndpoint}?${params}&origin=*`);
                 json = await response.json();
-                problemText = latexer(json.parse.text["*"]);
+                problemText = (json?.parse) ? latexer(json.parse.text["*"]) : '';
                 problemProblem = getProblem(problemText);
                 problemSolutions = getSolutions(problemText);
                 finalPage = redirPage;
@@ -659,7 +663,7 @@ async function jsonp_fetch(src, options = {}) {
         let json = await response.json();
 
         if (json?.parse) {
-            let problemText = latexer(json.parse.text["*"]);
+            let problemText = (json?.parse) ? latexer(json.parse.text["*"]) : '';
 
             if (problemText.includes("Redirect to:")) {
                 console.log("Redirect page, going there instead...");
@@ -676,7 +680,7 @@ async function jsonp_fetch(src, options = {}) {
                 params = `action=parse&page=${redirPage}&format=json`;
                 response = await jsonp_fetch(`${apiEndpoint}?${params}&origin=*`);
                 json = await response.json();
-                problemText = latexer(json.parse.text["*"]);
+                problemText = (json?.parse) ? latexer(json.parse.text["*"]) : '';
             }
 
             problemText = $($.parseHTML(problemText))
@@ -746,7 +750,11 @@ async function jsonp_fetch(src, options = {}) {
             console.log(jsonList);
 
             for (let [index, currentProblem] of problemTitles.entries()) {
-                let problemText = latexer(jsonList[index].parse.text["*"]);
+                let json = jsonList[index];
+                let problemText = ''
+                if (json?.parse) {
+                    problemText = (json?.parse) ? latexer(json.parse.text["*"]) : '';
+                }
                 let problemProblem = getProblem(problemText);
                 let problemSolutions = getSolutions(problemText);
 
@@ -788,7 +796,11 @@ async function jsonp_fetch(src, options = {}) {
                 console.log(jsonList);
 
                 for (let [index, currentProblem] of redirList.entries()) {
-                    let problemText = latexer(jsonList[index].parse.text["*"]);
+                    let json = jsonList[index];
+                    let problemText = ''
+                    if (json?.parse) {
+                        problemText = (json?.parse) ? latexer(json.parse.text["*"]) : '';
+                    }
                     let problemProblem = getProblem(problemText);
                     let problemSolutions = getSolutions(problemText);
 
@@ -2070,7 +2082,11 @@ async function jsonp_fetch(src, options = {}) {
             console.log(jsonList);
 
             for (let [index, currentProblem] of problemTitles.entries()) {
-                let problemText = latexer(jsonList[index].parse.text["*"]);
+                let json = jsonList[index];
+                let problemText = ''
+                if (json?.parse) {
+                    problemText = (json?.parse) ? latexer(json.parse.text["*"]) : '';
+                }
                 let problemProblem = getProblem(problemText);
                 let problemSolutions = getSolutions(problemText);
 
@@ -2109,7 +2125,11 @@ async function jsonp_fetch(src, options = {}) {
                 console.log(jsonList);
 
                 for (let [index, currentProblem] of redirList.entries()) {
-                    let problemText = latexer(jsonList[index].parse.text["*"]);
+                    let json = jsonList[index];
+                    let problemText = ''
+                    if (json?.parse) {
+                        problemText = (json?.parse) ? latexer(json.parse.text["*"]) : '';
+                    }
                     let problemProblem = getProblem(problemText);
                     let problemSolutions = getSolutions(problemText);
 
@@ -2228,7 +2248,11 @@ async function jsonp_fetch(src, options = {}) {
             console.log(jsonList);
 
             for (let [index, currentProblem] of problemTitles.entries()) {
-                let problemText = latexer(jsonList[index].parse.text["*"]);
+                let json = jsonList[index];
+                let problemText = ''
+                if (json?.parse) {
+                    problemText = (json?.parse) ? latexer(json.parse.text["*"]) : '';
+                }
                 let problemProblem = getProblem(problemText);
                 let problemSolutions = getSolutions(problemText);
 
@@ -2270,7 +2294,11 @@ async function jsonp_fetch(src, options = {}) {
                 console.log(jsonList);
 
                 for (let [index, currentProblem] of redirList.entries()) {
-                    let problemText = latexer(jsonList[index].parse.text["*"]);
+                    let json = jsonList[index];
+                    let problemText = ''
+                    if (json?.parse) {
+                        problemText = (json?.parse) ? latexer(json.parse.text["*"]) : '';
+                    }
                     let problemProblem = getProblem(problemText);
                     let problemSolutions = getSolutions(problemText);
 
@@ -2373,7 +2401,11 @@ async function jsonp_fetch(src, options = {}) {
                 console.log(jsonList);
 
                 for (let [index, currentProblem] of problemTitles.entries()) {
-                    let problemText = latexer(jsonList[index].parse.text["*"]);
+                    let json = jsonList[index];
+                    let problemText = ''
+                    if (json?.parse) {
+                        problemText = (json?.parse) ? latexer(json.parse.text["*"]) : '';
+                    }
                     let problemProblem = getProblem(problemText);
                     let problemSolutions = getSolutions(problemText);
 
@@ -2437,7 +2469,11 @@ async function jsonp_fetch(src, options = {}) {
             console.log(jsonList);
 
             for (let [index, randomPage] of randomList.entries()) {
-                let problemText = latexer(jsonList[index].parse.text["*"]);
+                let json = jsonList[index];
+                let problemText = ''
+                if (json?.parse) {
+                    problemText = (json?.parse) ? latexer(json.parse.text["*"]) : '';
+                }
                 let problemProblem = getProblem(problemText);
                 let problemSolutions = getSolutions(problemText);
 
@@ -2481,8 +2517,7 @@ async function jsonp_fetch(src, options = {}) {
                     params = `action=parse&page=${randomPage}&format=json`;
                     response = await jsonp_fetch(`${apiEndpoint}?${params}&origin=*`);
                     json = await response.json();
-
-                    problemText = latexer(json.parse.text["*"]);
+                    problemText = json.parse ? latexer(json.parse.text["*"]) : '';
                     problemProblem = getProblem(problemText);
                     problemSolutions = getSolutions(problemText);
 
@@ -2506,12 +2541,17 @@ async function jsonp_fetch(src, options = {}) {
                 paramsList = redirList.map((redirPage) => `action=parse&page=${redirPage}&format=json`);
                 console.log(paramsList);
                 responseList = await Promise.all(paramsList.map((params) => jsonp_fetch(`${apiEndpoint}?${params}&origin=*`, {'onSuccess': redirectProgress})));
+                //responseList = responseList.filter(result => result.status === '200').map(result => result.value);
                 console.log(responseList);
                 jsonList = await Promise.all(responseList.map((response) => response.json()));
                 console.log(jsonList);
 
                 for (let [index, currentProblem] of redirList.entries()) {
-                    let problemText = latexer(jsonList[index].parse.text["*"]);
+                    let json = jsonList[index];
+                    let problemText = ''
+                    if (json?.parse) {
+                        problemText = (json?.parse) ? latexer(json.parse.text["*"]) : '';
+                    }
                     let problemProblem = getProblem(problemText);
                     let problemSolutions = getSolutions(problemText);
 
@@ -3005,7 +3045,7 @@ async function jsonp_fetch(src, options = {}) {
                     response = await jsonp_fetch(`${apiEndpoint}?${params}&origin=*`);
                     json = await response.json();
 
-                    let problemText = latexer(json.parse.text["*"]);
+                    let problemText = (json?.parse) ? latexer(json.parse.text["*"]) : '';
                     let problemProblem = getProblem(problemText);
                     let problemSolutions = getSolutions(problemText);
 
@@ -3034,7 +3074,7 @@ async function jsonp_fetch(src, options = {}) {
                         response = await jsonp_fetch(`${apiEndpoint}?${params}&origin=*`);
                         json = await response.json();
 
-                        problemText = latexer(json.parse.text["*"]);
+                        problemText = (json?.parse) ? latexer(json.parse.text["*"]) : '';
                         problemProblem = getProblem(problemText);
                         problemSolutions = getSolutions(problemText);
 
@@ -3117,7 +3157,6 @@ async function jsonp_fetch(src, options = {}) {
                         json = await response.json();
 
                         $(`.answer-box[index=${replacedIndex}]`).remove();
-
                         let answerText = json.parse?.text["*"];
                         let problemNum = computeNumber(newProblem.title);
                         let answer = $($.parseHTML(answerText))
