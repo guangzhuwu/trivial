@@ -18,6 +18,10 @@ async function jsonp_fetch(src, options = {}) {
         script.onerror = () => {
             //let error = new Error('Script load failed');
             //reject(error);
+            reject(new Response(JSON.stringify(''), {
+                status: 408,
+                statusText: 'Request Timeout'
+            }));
             if (options.onError) {
                 options.onError();
             }
