@@ -1,6 +1,6 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
-     * License, v. 2.0. If a copy of the MPL was not distributed with this
-     * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 
 async function jsonp_fetch(src, options = {}) {
@@ -22,7 +22,9 @@ async function jsonp_fetch(src, options = {}) {
             script.remove();
             delete window[callbackName];
             resolve(new Response(JSON.stringify(data), {
-                status: data.status, statusText: data.statusText, headers: data.headers
+                status: data.status,
+                statusText: data.statusText,
+                headers: data.headers
             }));
         };
         document.head.appendChild(script);
@@ -43,109 +45,184 @@ async function jsonp_fetch(src, options = {}) {
     let theoremPages = [];
     let testsList = `AMC 8, AMC 10, AMC 12, AIME, USAJMO, USAMO, IMO, AJHSME, AHSME`;
     let validVersions = {
-        "AMC 10": ["A", "B", "Fall A", "Fall B"], "AMC 12": ["A", "B", "Fall A", "Fall B"], AIME: ["I", "II"],
+        "AMC 10": ["A", "B", "Fall A", "Fall B"],
+        "AMC 12": ["A", "B", "Fall A", "Fall B"],
+        AIME: ["I", "II"],
     };
     let validYears = {
         "AMC 8": {
-            min: 1999, max: 2023
-        }, "AMC 10": {
-            min: 2000, max: 2001
-        }, "AMC 10A": {
-            min: 2002, max: 2022
-        }, "AMC 10B": {
-            min: 2002, max: 2022
-        }, "AMC 10Fall A": {
-            min: 2021, max: 2021
-        }, "AMC 10Fall B": {
-            min: 2021, max: 2021
-        }, "AMC 12": {
-            min: 2000, max: 2001
-        }, "AMC 12A": {
-            min: 2002, max: 2022
-        }, "AMC 12B": {
-            min: 2002, max: 2022
-        }, "AMC 12Fall A": {
-            min: 2021, max: 2021
-        }, "AMC 12Fall B": {
-            min: 2021, max: 2021
-        }, AIME: {
-            min: 1983, max: 1999
-        }, AIMEI: {
-            min: 2000, max: 2023
-        }, AIMEII: {
-            min: 2000, max: 2022
-        }, USAJMO: {
-            min: 2010, max: 2022
-        }, USAMO: {
-            min: 1972, max: 2022
-        }, IMO: {
-            min: 1959, max: 2022
-        }, AJHSME: {
-            min: 1985, max: 1998
-        }, AHSME: {
-            min: 1974, max: 1999
+            min: 1999,
+            max: 2023
+        },
+        "AMC 10": {
+            min: 2000,
+            max: 2001
+        },
+        "AMC 10A": {
+            min: 2002,
+            max: 2022
+        },
+        "AMC 10B": {
+            min: 2002,
+            max: 2022
+        },
+        "AMC 10Fall A": {
+            min: 2021,
+            max: 2021
+        },
+        "AMC 10Fall B": {
+            min: 2021,
+            max: 2021
+        },
+        "AMC 12": {
+            min: 2000,
+            max: 2001
+        },
+        "AMC 12A": {
+            min: 2002,
+            max: 2022
+        },
+        "AMC 12B": {
+            min: 2002,
+            max: 2022
+        },
+        "AMC 12Fall A": {
+            min: 2021,
+            max: 2021
+        },
+        "AMC 12Fall B": {
+            min: 2021,
+            max: 2021
+        },
+        AIME: {
+            min: 1983,
+            max: 1999
+        },
+        AIMEI: {
+            min: 2000,
+            max: 2023
+        },
+        AIMEII: {
+            min: 2000,
+            max: 2022
+        },
+        USAJMO: {
+            min: 2010,
+            max: 2022
+        },
+        USAMO: {
+            min: 1972,
+            max: 2022
+        },
+        IMO: {
+            min: 1959,
+            max: 2022
+        },
+        AJHSME: {
+            min: 1985,
+            max: 1998
+        },
+        AHSME: {
+            min: 1974,
+            max: 1999
         },
     };
     let validNums = {
         "AMC 8": {
-            min: 1, max: 25
-        }, "AMC 10": {
-            min: 1, max: 25
-        }, "AMC 12": {
-            min: 1, max: 25
-        }, AIME: {
-            min: 1, max: 15
-        }, USAJMO: {
-            min: 1, max: 6
-        }, USAMO: {
-            min: 1, max: 6
-        }, IMO: {
-            min: 1, max: 6
-        }, AJHSME: {
-            min: 1, max: 25
-        }, AHSME: {
-            min: 1, max: 30
+            min: 1,
+            max: 25
+        },
+        "AMC 10": {
+            min: 1,
+            max: 25
+        },
+        "AMC 12": {
+            min: 1,
+            max: 25
+        },
+        AIME: {
+            min: 1,
+            max: 15
+        },
+        USAJMO: {
+            min: 1,
+            max: 6
+        },
+        USAMO: {
+            min: 1,
+            max: 6
+        },
+        IMO: {
+            min: 1,
+            max: 6
+        },
+        AJHSME: {
+            min: 1,
+            max: 25
+        },
+        AHSME: {
+            min: 1,
+            max: 30
         },
     };
     let whitelist = [{
-        value: "3D Geometry Problems", shortName: "3D Geo"
+        value: "3D Geometry Problems",
+        shortName: "3D Geo"
     }, {
-        value: "Introductory Algebra Problems", shortName: "Intro Alg"
+        value: "Introductory Algebra Problems",
+        shortName: "Intro Alg"
     }, {
-        value: "Introductory Combinatorics Problems", shortName: "Intro Combo"
+        value: "Introductory Combinatorics Problems",
+        shortName: "Intro Combo"
     }, {
-        value: "Introductory Geometry Problems", shortName: "Intro Geo"
+        value: "Introductory Geometry Problems",
+        shortName: "Intro Geo"
     }, {
-        value: "Introductory Number Theory Problems", shortName: "Intro NT"
+        value: "Introductory Number Theory Problems",
+        shortName: "Intro NT"
     }, {
-        value: "Introductory Probability Problems", shortName: "Intro Prob"
+        value: "Introductory Probability Problems",
+        shortName: "Intro Prob"
     }, {
-        value: "Introductory Trigonometry Problems", shortName: "Intro Trig"
+        value: "Introductory Trigonometry Problems",
+        shortName: "Intro Trig"
     }, {
-        value: "Intermediate Algebra Problems", shortName: "Int Alg"
+        value: "Intermediate Algebra Problems",
+        shortName: "Int Alg"
     }, {
-        value: "Intermediate Combinatorics Problems", shortName: "Int Combo"
+        value: "Intermediate Combinatorics Problems",
+        shortName: "Int Combo"
     }, {
-        value: "Intermediate Geometry Problems", shortName: "Int Geo"
+        value: "Intermediate Geometry Problems",
+        shortName: "Int Geo"
     }, {
-        value: "Intermediate Number Theory Problems", shortName: "Int NT"
+        value: "Intermediate Number Theory Problems",
+        shortName: "Int NT"
     }, {
-        value: "Intermediate Probability Problems", shortName: "Int Prob"
+        value: "Intermediate Probability Problems",
+        shortName: "Int Prob"
     }, {
-        value: "Intermediate Trigonometry Problems", shortName: "Int Trig"
+        value: "Intermediate Trigonometry Problems",
+        shortName: "Int Trig"
     }, {
-        value: "Olympiad Algebra Problems", shortName: "Oly Alg"
+        value: "Olympiad Algebra Problems",
+        shortName: "Oly Alg"
     }, {
-        value: "Olympiad Combinatorics Problems", shortName: "Oly Combo"
+        value: "Olympiad Combinatorics Problems",
+        shortName: "Oly Combo"
     }, {
-        value: "Olympiad Geometry Problems", shortName: "Oly Geo"
+        value: "Olympiad Geometry Problems",
+        shortName: "Oly Geo"
     }, {
-        value: "Olympiad Inequality Problems", shortName: "Oly Ineq"
+        value: "Olympiad Inequality Problems",
+        shortName: "Oly Ineq"
     }, {
-        value: "Olympiad Number Theory Problems", shortName: "Oly NT"
+        value: "Olympiad Number Theory Problems",
+        shortName: "Oly NT"
     }, {
-        value: "Olympiad Trigonometry Problems", shortName: "Oly Trig"
-    },];
+        value: "Olympiad Trigonometry Problems",
+        shortName: "Oly Trig"
+    }, ];
 
     function subjectTag(tagData) {
         return `<tag title="${tagData.value}" contenteditable="false" spellcheck="false" tabindex="-1" class="tagify__tag " value="${tagData.value}">
@@ -309,7 +386,8 @@ async function jsonp_fetch(src, options = {}) {
     let searchParams = new URLSearchParams(location.search);
     let lastParam = searchParams.get("page") ?? searchParams.get("problems");
     let testInfo = {
-        testYear: searchParams.get("testyear"), testName: searchParams.get("testname"),
+        testYear: searchParams.get("testyear"),
+        testName: searchParams.get("testname"),
     };
 
     // Toggles settings
@@ -392,8 +470,7 @@ async function jsonp_fetch(src, options = {}) {
             let problemProblem = getProblem(problemText);
             let problemSolutions = getSolutions(problemText);
 
-            if (problemProblem && problemSolutions) {
-            } else if (problemText.includes("Redirect to:")) {
+            if (problemProblem && problemSolutions) {} else if (problemText.includes("Redirect to:")) {
                 console.log("Redirect problem, going there instead...");
 
                 let redirHref = $($.parseHTML(problemText))
@@ -481,7 +558,9 @@ async function jsonp_fetch(src, options = {}) {
         let yearFrom = inputYears.data().from;
         let yearTo = inputYears.data().to;
         let now = new Date().toLocaleString("en-UK", {
-            year: "numeric", month: "short", day: "numeric"
+            year: "numeric",
+            month: "short",
+            day: "numeric"
         });
         return `Problem Set (${diffFrom} - ${diffTo}) - (${yearFrom} - ${yearTo}) - ${now}`;
     }
@@ -720,13 +799,17 @@ async function jsonp_fetch(src, options = {}) {
         if (clickedTimes === clickedTimesThen) {
             if (pushUrl) {
                 console.log({
-                    problems: pagenames, ...(testName ? {
-                        testyear: testYear, testname: testName
+                    problems: pagenames,
+                    ...(testName ? {
+                        testyear: testYear,
+                        testname: testName
                     } : {}),
                 });
                 history.pushState({
-                    problems: pagenames, ...(testName ? {
-                        testyear: testYear, testname: testName
+                    problems: pagenames,
+                    ...(testName ? {
+                        testyear: testYear,
+                        testname: testName
                     } : {}),
                 }, "Problem Set - Trivial Math Practice", "?problems=" + pagenames + (testYear ? `&testyear=${testYear}&testname=${testName}` : ``));
                 searchParams = new URLSearchParams(location.search);
@@ -866,7 +949,8 @@ async function jsonp_fetch(src, options = {}) {
         console.log(jsonList);
         let jsonDict = jsonList.reduce((jsonDict, json, index) => {
             return {
-                ...jsonDict, [uniqueTests[index]]: json
+                ...jsonDict,
+                [uniqueTests[index]]: json
             };
         }, {});
         console.log(jsonDict);
@@ -938,7 +1022,9 @@ async function jsonp_fetch(src, options = {}) {
         $("#batchans-button").on('click', async () => {
             $(".feedback-item").remove();
 
-            if ($("#score-only").prop("checked")) $("#batchans-section").addClass("batchans-scoreonly"); else if ($("#check-only").prop("checked")) $("#batchans-section").addClass("batchans-checkonly"); else $("#batchans-section").addClass("batchans-showans");
+            if ($("#score-only").prop("checked")) $("#batchans-section").addClass("batchans-scoreonly");
+            else if ($("#check-only").prop("checked")) $("#batchans-section").addClass("batchans-checkonly");
+            else $("#batchans-section").addClass("batchans-showans");
 
             if ($("#input-amc").prop("checked")) $("#batchans-section").addClass("batchans-amcscore");
 
@@ -1002,7 +1088,7 @@ async function jsonp_fetch(src, options = {}) {
             $("#number-score").text(`Correct: ${rightAnswers}/${totalAnswers}`);
             $("#amc-score").html(`<span class="score-num">Score: ${rightAnswers * 6 + blankAnswers * 1.5}</span>`);
 
-            let statTests = ["AMC 8", "AMC 10A", "AMC 10B", "AMC 12A", "AMC 12B", "AIME I", "AIME II",];
+            let statTests = ["AMC 8", "AMC 10A", "AMC 10B", "AMC 12A", "AMC 12B", "AIME I", "AIME II", ];
             if (testName && statTests.includes(testName)) {
                 let apiEndpoint = "https://artofproblemsolving.com/wiki/api.php";
                 let params = `action=parse&page=AMC_historical_results&format=json`;
@@ -1100,7 +1186,8 @@ async function jsonp_fetch(src, options = {}) {
                         }
                     }
                     categoryPages.push({
-                        subject: subject, pages: fullPages
+                        subject: subject,
+                        pages: fullPages
                     });
                     console.log(`${fullPages.length} category pages retrieved.`);
                 }
@@ -1346,7 +1433,8 @@ async function jsonp_fetch(src, options = {}) {
                     let isDisplay = /alt="\\\[|\\begin/.test(image);
                     let imageLatex = formatLatex(image.match(/alt="(.*?)"/)[1]);
                     let renderedLatex = katex.renderToString(imageLatex, {
-                        throwOnError: false, displayMode: isDisplay,
+                        throwOnError: false,
+                        displayMode: isDisplay,
                     });
                     html = html.replaceAll(image, `<span class="fallback-container">$&</span>` + `<katex class="katex-container">${renderedLatex}</katex>`);
                 }
@@ -1450,14 +1538,20 @@ async function jsonp_fetch(src, options = {}) {
         directLinks();
 
         $("#input-singletest").tagify({
-            mode: "select", originalInputValueFormat: (values) => values.map((e) => e.value), dropdown: {
-                enabled: 0, maxItems: 100,
+            mode: "select",
+            originalInputValueFormat: (values) => values.map((e) => e.value),
+            dropdown: {
+                enabled: 0,
+                maxItems: 100,
             },
         });
 
         $("#input-singlever").tagify({
-            mode: "select", originalInputValueFormat: (values) => values.map((e) => e.value), dropdown: {
-                enabled: 0, maxItems: 100,
+            mode: "select",
+            originalInputValueFormat: (values) => values.map((e) => e.value),
+            dropdown: {
+                enabled: 0,
+                maxItems: 100,
             },
         });
     });
@@ -1480,23 +1574,42 @@ async function jsonp_fetch(src, options = {}) {
         directLinks();
 
         $("#input-subjects").tagify({
-            whitelist: whitelist, originalInputValueFormat: (values) => values.map((e) => e.value), dropdown: {
-                enabled: 0, maxItems: 100, mapValueTo: (e) => e.value.replace(" Problems", ""),
-            }, templates: {
+            whitelist: whitelist,
+            originalInputValueFormat: (values) => values.map((e) => e.value),
+            dropdown: {
+                enabled: 0,
+                maxItems: 100,
+                mapValueTo: (e) => e.value.replace(" Problems", ""),
+            },
+            templates: {
                 tag: subjectTag,
             },
         });
         $("#input-tests").tagify({
-            originalInputValueFormat: (values) => values.map((e) => e.value), dropdown: {
-                enabled: 0, maxItems: 100,
+            originalInputValueFormat: (values) => values.map((e) => e.value),
+            dropdown: {
+                enabled: 0,
+                maxItems: 100,
             },
         });
 
         $("#input-years").ionRangeSlider({
-            type: "double", grid: true, min: 1974, max: 2022, from: 2000, to: 2022, prettify_enabled: false,
+            type: "double",
+            grid: true,
+            min: 1974,
+            max: 2022,
+            from: 2000,
+            to: 2022,
+            prettify_enabled: false,
         });
         $("#input-diff").ionRangeSlider({
-            type: "double", grid: true, min: 0, max: 10, from: 0, to: 10, step: 0.1,
+            type: "double",
+            grid: true,
+            min: 0,
+            max: 10,
+            from: 0,
+            to: 10,
+            step: 0.1,
         });
 
         if (!JSON.parse(localStorage.getItem("autogenOff"))) $("#random-button").trigger('click');
@@ -1512,7 +1625,8 @@ async function jsonp_fetch(src, options = {}) {
         $("#problem-batch").trigger('click');
         $("#input-tests").data("tagify").addTags(["AMC 8"]);
         $("#input-diff").data("ionRangeSlider").update({
-            from: 0, to: 2.1
+            from: 0,
+            to: 2.1
         });
         $("#input-number").data("ionRangeSlider").update({
             from: 25
@@ -1530,7 +1644,8 @@ async function jsonp_fetch(src, options = {}) {
         $("#problem-batch").trigger('click');
         $("#input-tests").data("tagify").addTags(["AMC 10"]);
         $("#input-diff").data("ionRangeSlider").update({
-            from: 1, to: 4.5
+            from: 1,
+            to: 4.5
         });
         $("#input-number").data("ionRangeSlider").update({
             from: 25
@@ -1548,7 +1663,8 @@ async function jsonp_fetch(src, options = {}) {
         $("#problem-batch").trigger('click');
         $("#input-tests").data("tagify").addTags(["AMC 12"]);
         $("#input-diff").data("ionRangeSlider").update({
-            from: 1, to: 5.5
+            from: 1,
+            to: 5.5
         });
         $("#input-number").data("ionRangeSlider").update({
             from: 25
@@ -1560,7 +1676,8 @@ async function jsonp_fetch(src, options = {}) {
         $("#single-problem").trigger('click');
         $("#input-tests").data("tagify").addTags(["AIME"]);
         $("#input-diff").data("ionRangeSlider").update({
-            from: 3, to: 6.5
+            from: 3,
+            to: 6.5
         });
         $("#random-button").trigger('click');
     });
@@ -1569,7 +1686,8 @@ async function jsonp_fetch(src, options = {}) {
         $("#problem-batch").trigger('click');
         $("#input-tests").data("tagify").addTags(["AIME"]);
         $("#input-diff").data("ionRangeSlider").update({
-            from: 3, to: 6.5
+            from: 3,
+            to: 6.5
         });
         $("#input-number").data("ionRangeSlider").update({
             from: 15
@@ -1581,7 +1699,8 @@ async function jsonp_fetch(src, options = {}) {
         $("#single-problem").trigger('click');
         $("#input-tests").data("tagify").addTags(["USAJMO"]);
         $("#input-diff").data("ionRangeSlider").update({
-            from: 5.5, to: 7
+            from: 5.5,
+            to: 7
         });
         $("#random-button").trigger('click');
     });
@@ -1590,7 +1709,8 @@ async function jsonp_fetch(src, options = {}) {
         $("#problem-batch").trigger('click');
         $("#input-tests").data("tagify").addTags(["USAJMO"]);
         $("#input-diff").data("ionRangeSlider").update({
-            from: 5.5, to: 7
+            from: 5.5,
+            to: 7
         });
         $("#input-number").data("ionRangeSlider").update({
             from: 6
@@ -1602,7 +1722,8 @@ async function jsonp_fetch(src, options = {}) {
         $("#single-problem").trigger('click');
         $("#input-tests").data("tagify").addTags(["USAMO"]);
         $("#input-diff").data("ionRangeSlider").update({
-            from: 6.5, to: 8.5
+            from: 6.5,
+            to: 8.5
         });
         $("#random-button").trigger('click');
     });
@@ -1611,7 +1732,8 @@ async function jsonp_fetch(src, options = {}) {
         $("#problem-batch").trigger('click');
         $("#input-tests").data("tagify").addTags(["USAMO"]);
         $("#input-diff").data("ionRangeSlider").update({
-            from: 6.5, to: 8.5
+            from: 6.5,
+            to: 8.5
         });
         $("#input-number").data("ionRangeSlider").update({
             from: 6
@@ -1660,14 +1782,20 @@ async function jsonp_fetch(src, options = {}) {
         hideToggle();
 
         $("#input-singletest").tagify({
-            mode: "select", originalInputValueFormat: (values) => values.map((e) => e.value), dropdown: {
-                enabled: 0, maxItems: 100,
+            mode: "select",
+            originalInputValueFormat: (values) => values.map((e) => e.value),
+            dropdown: {
+                enabled: 0,
+                maxItems: 100,
             },
         });
 
         $("#input-singlever").tagify({
-            mode: "select", originalInputValueFormat: (values) => values.map((e) => e.value), dropdown: {
-                enabled: 0, maxItems: 100,
+            mode: "select",
+            originalInputValueFormat: (values) => values.map((e) => e.value),
+            dropdown: {
+                enabled: 0,
+                maxItems: 100,
             },
         });
     });
@@ -1699,7 +1827,8 @@ async function jsonp_fetch(src, options = {}) {
         hideToggle();
 
         $("#input-problems").tagify({
-            originalInputValueFormat: (values) => values.map((e) => e.value), dropdown: {
+            originalInputValueFormat: (values) => values.map((e) => e.value),
+            dropdown: {
                 enabled: 0,
             },
         });
@@ -1746,36 +1875,60 @@ async function jsonp_fetch(src, options = {}) {
         hideToggle();
 
         $("#input-subjects").tagify({
-            whitelist: whitelist, originalInputValueFormat: (values) => values.map((e) => e.value), dropdown: {
-                enabled: 0, maxItems: 100, mapValueTo: (e) => e.value.replace(" Problems", ""),
-            }, templates: {
+            whitelist: whitelist,
+            originalInputValueFormat: (values) => values.map((e) => e.value),
+            dropdown: {
+                enabled: 0,
+                maxItems: 100,
+                mapValueTo: (e) => e.value.replace(" Problems", ""),
+            },
+            templates: {
                 tag: subjectTag,
             },
         });
         $("#input-tests").tagify({
-            originalInputValueFormat: (values) => values.map((e) => e.value), dropdown: {
-                enabled: 0, maxItems: 100,
+            originalInputValueFormat: (values) => values.map((e) => e.value),
+            dropdown: {
+                enabled: 0,
+                maxItems: 100,
             },
         });
         $("#input-problems").tagify({
-            originalInputValueFormat: (values) => values.map((e) => e.value), dropdown: {
+            originalInputValueFormat: (values) => values.map((e) => e.value),
+            dropdown: {
                 enabled: 0,
             },
         });
         $("#input-skip").tagify({
-            originalInputValueFormat: (values) => values.map((e) => e.value), dropdown: {
+            originalInputValueFormat: (values) => values.map((e) => e.value),
+            dropdown: {
                 enabled: 0,
             },
         });
 
         $("#input-years").ionRangeSlider({
-            type: "double", grid: true, min: 1974, max: 2022, from: 2000, to: 2022, prettify_enabled: false,
+            type: "double",
+            grid: true,
+            min: 1974,
+            max: 2022,
+            from: 2000,
+            to: 2022,
+            prettify_enabled: false,
         });
         $("#input-diff").ionRangeSlider({
-            type: "double", grid: true, min: 0, max: 10, from: 0, to: 10, step: 0.1,
+            type: "double",
+            grid: true,
+            min: 0,
+            max: 10,
+            from: 0,
+            to: 10,
+            step: 0.1,
         });
         $("#input-number").ionRangeSlider({
-            grid: true, min: 0, max: 1000, from: 5,
+            grid: true,
+            min: 0,
+            max: 1000,
+            from: 5,
         });
 
         if (!JSON.parse(localStorage.getItem("autogenOff"))) $("#ranbatch-button").trigger('click');
@@ -1809,9 +1962,12 @@ async function jsonp_fetch(src, options = {}) {
         directLinks();
 
         $("#input-search").tagify({
-            mode: "select", originalInputValueFormat: (values) => values.map((e) => e.value), dropdown: {
+            mode: "select",
+            originalInputValueFormat: (values) => values.map((e) => e.value),
+            dropdown: {
                 maxItems: 7,
-            }, whitelist: allPages,
+            },
+            whitelist: allPages,
         });
     });
 
@@ -2332,7 +2488,8 @@ async function jsonp_fetch(src, options = {}) {
                         difficulty: computeDifficulty(computeTest(currentProblem), computeNumber(currentProblem), computeYear(currentProblem)),
                         problem: problemProblem,
                         solutions: problemSolutions,
-                    }); else problems.push({
+                    });
+                    else problems.push({
                         title: currentProblem,
                         difficulty: computeDifficulty(computeTest(currentProblem), computeNumber(currentProblem), computeYear(currentProblem)),
                         problem: problemProblem,
@@ -2473,7 +2630,8 @@ async function jsonp_fetch(src, options = {}) {
             response = await jsonp_fetch(`${apiEndpoint}?${params}&origin=*`);
             json = await response.json();
 
-            if (clickedTimes === clickedTimesThen) for (let page of json.query.search) enterResult(page);
+            if (clickedTimes === clickedTimesThen)
+                for (let page of json.query.search) enterResult(page);
 
             while (json?.continue) {
                 let paramsContinue = params + `&sroffset=${json.continue.sroffset}`;
@@ -2666,37 +2824,63 @@ async function jsonp_fetch(src, options = {}) {
                 description: "A simple pie chart with labels.",
                 data: {
                     values: [{
-                        Answers: "Correct", value: numCorrect, text: numCorrect ? numCorrect + "✓" : "", sortOrder: 1,
+                        Answers: "Correct",
+                        value: numCorrect,
+                        text: numCorrect ? numCorrect + "✓" : "",
+                        sortOrder: 1,
                     }, {
-                        Answers: "Retry", value: numRetry, text: numRetry ? numRetry + "↻" : "", sortOrder: 2,
+                        Answers: "Retry",
+                        value: numRetry,
+                        text: numRetry ? numRetry + "↻" : "",
+                        sortOrder: 2,
                     }, {
-                        Answers: "Incorrect", value: numWrong, text: numWrong ? numWrong + "✗" : "", sortOrder: 3,
-                    },],
+                        Answers: "Incorrect",
+                        value: numWrong,
+                        text: numWrong ? numWrong + "✗" : "",
+                        sortOrder: 3,
+                    }, ],
                 },
                 encoding: {
                     theta: {
-                        field: "value", type: "quantitative", stack: true,
-                    }, color: {
-                        field: "Answers", type: "nominal", legend: null, scale: {
+                        field: "value",
+                        type: "quantitative",
+                        stack: true,
+                    },
+                    color: {
+                        field: "Answers",
+                        type: "nominal",
+                        legend: null,
+                        scale: {
                             domain: ["Correct", "Retry", "Incorrect"],
-                            range: ["var(--correct-color)", "var(--retry-color)", "var(--wrong-color)",],
-                        }, sort: {
+                            range: ["var(--correct-color)", "var(--retry-color)", "var(--wrong-color)", ],
+                        },
+                        sort: {
                             field: "sortOrder"
                         },
-                    }, order: {
-                        field: "sortOrder", type: "ordinal",
+                    },
+                    order: {
+                        field: "sortOrder",
+                        type: "ordinal",
                     },
                 },
                 layer: [{
                     mark: {
-                        type: "arc", innerRadius: 50, outerRadius: 80,
+                        type: "arc",
+                        innerRadius: 50,
+                        outerRadius: 80,
                     },
                 }, {
                     mark: {
-                        type: "text", radius: 100, fontSize: 15, fontWeight: "bold",
-                    }, encoding: {
+                        type: "text",
+                        radius: 100,
+                        fontSize: 15,
+                        fontWeight: "bold",
+                    },
+                    encoding: {
                         text: {
-                            field: "text", type: "nominal", sort: {
+                            field: "text",
+                            type: "nominal",
+                            sort: {
                                 field: "sortOrder"
                             },
                         },
@@ -2709,7 +2893,8 @@ async function jsonp_fetch(src, options = {}) {
                         baseline: "middle",
                         dy: 11,
                         fontSize: 16,
-                    }, encoding: {
+                    },
+                    encoding: {
                         text: {
                             value: "correct"
                         },
@@ -2724,12 +2909,13 @@ async function jsonp_fetch(src, options = {}) {
                         dy: -7,
                         font: "'Latin Modern Sans Demi-Condensed', sans-serif",
                         fontSize: 20,
-                    }, encoding: {
+                    },
+                    encoding: {
                         text: {
                             value: (((numCorrect + numRetry) / numAnswered) * 100).toFixed(1) + "%",
                         },
                     },
-                },],
+                }, ],
                 background: null,
                 config: {
                     font: "'Latin Modern Sans', 'Inter', sans-serif",
@@ -2737,7 +2923,8 @@ async function jsonp_fetch(src, options = {}) {
             };
 
             if (numAnswered > 0) vegaEmbed("#stats-chart", options, {
-                actions: false, renderer: "svg",
+                actions: false,
+                renderer: "svg",
             });
         }
 
@@ -2993,7 +3180,8 @@ async function jsonp_fetch(src, options = {}) {
             if ($("#input-sort").prop("checked")) pages = pages.filter((problem) => computeDifficulty(computeTest(problem), computeNumber(problem), computeYear(problem)) === replacedDifficulty);
 
             console.log(`${pages.length} total problems retrieved.`);
-            if (!pages.length) $(this).replaceWith(`<span class="replace-notice">No replacements found</span>`); else {
+            if (!pages.length) $(this).replaceWith(`<span class="replace-notice">No replacements found</span>`);
+            else {
                 await replace();
                 console.log(problems);
                 if (!pages.length) $(this).replaceWith(`<span class="replace-notice">No replacements found</span>`);
@@ -3116,11 +3304,13 @@ async function jsonp_fetch(src, options = {}) {
             let href = $(this).attr("href")?.split("#")[0];
             if (href && /^\/wiki\/index\.php\//.test(href)) {
                 $(this).attr({
-                    href: href.replace("/wiki/index.php/", "?page="), title: "",
+                    href: href.replace("/wiki/index.php/", "?page="),
+                    title: "",
                 });
             } else if (href && /^\/wiki\/index\.php/.test(href)) {
                 $(this).attr({
-                    href: href.replace("/wiki/index.php", "https://artofproblemsolving.com/wiki/index.php"), title: "",
+                    href: href.replace("/wiki/index.php", "https://artofproblemsolving.com/wiki/index.php"),
+                    title: "",
                 });
             }
         });
@@ -3143,13 +3333,15 @@ async function jsonp_fetch(src, options = {}) {
                     .replace(/%/g, "%25")).replace(/%2F/g, "/");
                 clearProblem();
                 console.log(pagename);
-                if (validProblem(pagename)) await addProblem(pagename, true); else await addArticle(pagename, true);
+                if (validProblem(pagename)) await addProblem(pagename, true);
+                else await addArticle(pagename, true);
             }
         });
     }
 
     function hideLinks() {
-        if ($("#input-hide").prop("checked")) $("#batch-text .source-link").addClass("source-link-hidden"); else $("#batch-text .source-link").removeClass("source-link-hidden");
+        if ($("#input-hide").prop("checked")) $("#batch-text .source-link").addClass("source-link-hidden");
+        else $("#batch-text .source-link").removeClass("source-link-hidden");
     }
 
     function hideToggle() {
@@ -3316,10 +3508,12 @@ async function jsonp_fetch(src, options = {}) {
             let testVer = $("#input-singlever").val();
             let testName = $("#input-singletest").val();
             if (testName + testVer in validYears) yearSelect.attr({
-                min: validYears[testName + testVer].min, max: validYears[testName + testVer].max,
+                min: validYears[testName + testVer].min,
+                max: validYears[testName + testVer].max,
             });
             if (testName in validNums) numSelect.attr({
-                min: validNums[testName].min, max: validNums[testName].max,
+                min: validNums[testName].min,
+                max: validNums[testName].max,
             });
         });
     }
@@ -3329,55 +3523,104 @@ async function jsonp_fetch(src, options = {}) {
         const options = {
             $schema: "https://vega.github.io/schema/vega-lite/v5.json",
 
-            description: "A simple bar chart with ranged data (aka Gantt Chart).", data: {
+            description: "A simple bar chart with ranged data (aka Gantt Chart).",
+            data: {
                 values: [{
-                    Test: "AMC 8", "Start difficulty": 0.25, "End difficulty": 2, Level: "Introductory",
+                    Test: "AMC 8",
+                    "Start difficulty": 0.25,
+                    "End difficulty": 2,
+                    Level: "Introductory",
                 }, {
-                    Test: "AMC 10", "Start difficulty": 1, "End difficulty": 4.5, Level: "Intermediate",
+                    Test: "AMC 10",
+                    "Start difficulty": 1,
+                    "End difficulty": 4.5,
+                    Level: "Intermediate",
                 }, {
-                    Test: "AMC 12", "Start difficulty": 1.25, "End difficulty": 5.5, Level: "Intermediate",
+                    Test: "AMC 12",
+                    "Start difficulty": 1.25,
+                    "End difficulty": 5.5,
+                    Level: "Intermediate",
                 }, {
-                    Test: "AHSME", "Start difficulty": 1, "End difficulty": 5.5, Level: "Intermediate",
+                    Test: "AHSME",
+                    "Start difficulty": 1,
+                    "End difficulty": 5.5,
+                    Level: "Intermediate",
                 }, {
-                    Test: "AIME", "Start difficulty": 3, "End difficulty": 6.5, Level: "Intermediate",
+                    Test: "AIME",
+                    "Start difficulty": 3,
+                    "End difficulty": 6.5,
+                    Level: "Intermediate",
                 }, {
-                    Test: "USAJMO", "Start difficulty": 4, "End difficulty": 7, Level: "Olympiad",
+                    Test: "USAJMO",
+                    "Start difficulty": 4,
+                    "End difficulty": 7,
+                    Level: "Olympiad",
                 }, {
-                    Test: "USAMO", "Start difficulty": 4, "End difficulty": 8.5, Level: "Olympiad",
+                    Test: "USAMO",
+                    "Start difficulty": 4,
+                    "End difficulty": 8.5,
+                    Level: "Olympiad",
                 }, {
-                    Test: "IMO", "Start difficulty": 4, "End difficulty": 9.5, Level: "Olympiad",
-                },],
-            }, mark: "bar", encoding: {
+                    Test: "IMO",
+                    "Start difficulty": 4,
+                    "End difficulty": 9.5,
+                    Level: "Olympiad",
+                }, ],
+            },
+            mark: "bar",
+            encoding: {
                 y: {
-                    field: "Test", type: "ordinal", sort: {
+                    field: "Test",
+                    type: "ordinal",
+                    sort: {
                         order: null
-                    }, axis: {
-                        titleFontSize: 14, labelFontSize: 13
                     },
-                }, x: {
-                    field: "Start difficulty", type: "quantitative", axis: {
-                        tickMinStep: 1, titleFontSize: 14, labelFontSize: 13, title: "Difficulty",
+                    axis: {
+                        titleFontSize: 14,
+                        labelFontSize: 13
                     },
-                }, x2: {
+                },
+                x: {
+                    field: "Start difficulty",
+                    type: "quantitative",
+                    axis: {
+                        tickMinStep: 1,
+                        titleFontSize: 14,
+                        labelFontSize: 13,
+                        title: "Difficulty",
+                    },
+                },
+                x2: {
                     field: "End difficulty"
-                }, color: {
-                    type: "nominal", field: "Level", scale: {
-                        domain: ["Introductory", "Intermediate", "Olympiad"], range: ["#f58518", "#4c78a8", "#e45756"],
-                    }, sort: {
+                },
+                color: {
+                    type: "nominal",
+                    field: "Level",
+                    scale: {
+                        domain: ["Introductory", "Intermediate", "Olympiad"],
+                        range: ["#f58518", "#4c78a8", "#e45756"],
+                    },
+                    sort: {
                         order: null
-                    }, legend: {
-                        titleFontSize: 14, labelFontSize: 13,
+                    },
+                    legend: {
+                        titleFontSize: 14,
+                        labelFontSize: 13,
                     },
                 },
             },
 
-            width: "container", height: 200, background: null, config: {
+            width: "container",
+            height: 200,
+            background: null,
+            config: {
                 font: "'Latin Modern Sans', sans-serif",
             },
         };
 
         vegaEmbed("#difficulty-chart", options, {
-            actions: false, renderer: "svg",
+            actions: false,
+            renderer: "svg",
         });
     }
 
@@ -3389,10 +3632,15 @@ async function jsonp_fetch(src, options = {}) {
         let sanitizedSnippet = sanitize(snippet);
 
         if (history) history.unshift({
-            url: url, title: cleanedPage, snippet: sanitizedSnippet,
-        }); else history = [{
-            url: url, title: cleanedPage, snippet: sanitizedSnippet,
-        },];
+            url: url,
+            title: cleanedPage,
+            snippet: sanitizedSnippet,
+        });
+        else history = [{
+            url: url,
+            title: cleanedPage,
+            snippet: sanitizedSnippet,
+        }, ];
         if (history.length > 50) history.pop();
         history = [...new Map(history.map((item) => [item.title, item])).values()];
 
@@ -3409,10 +3657,15 @@ async function jsonp_fetch(src, options = {}) {
         let sanitizedSnippet = sanitize(snippet);
 
         if (history) history.unshift({
-            url: url, title: cleanedPage, snippet: sanitizedSnippet,
-        }); else history = [{
-            url: url, title: cleanedPage, snippet: sanitizedSnippet,
-        },];
+            url: url,
+            title: cleanedPage,
+            snippet: sanitizedSnippet,
+        });
+        else history = [{
+            url: url,
+            title: cleanedPage,
+            snippet: sanitizedSnippet,
+        }, ];
         if (history.length > 50) history.pop();
         history = [...new Map(history.map((item) => [item.title, item])).values()];
 
@@ -3425,7 +3678,8 @@ async function jsonp_fetch(src, options = {}) {
             $("#main-button-container").after(`${notes}`);
             collapseText();
 
-            if (validProblem(lastParam)) await addProblem(lastParam, true); else await addArticle(lastParam, true);
+            if (validProblem(lastParam)) await addProblem(lastParam, true);
+            else await addArticle(lastParam, true);
         } else if (searchParams.get("problems")) {
             $("#main-button-container").after(`${notes}`);
             addUrlBatch();
@@ -3444,12 +3698,14 @@ async function jsonp_fetch(src, options = {}) {
 
             if (newPagename && newPagename !== searchParams.get("page")) {
                 if (!$(".notes").length) {
-                    if (!$("#secondary-button-container").length) $("#main-button-container").after(`${notes}`); else $("#secondary-button-container").after(`${notes}`);
+                    if (!$("#secondary-button-container").length) $("#main-button-container").after(`${notes}`);
+                    else $("#secondary-button-container").after(`${notes}`);
                     collapseText();
                 }
 
                 clearProblem();
-                if (validProblem(newPagename)) await addProblem(newPagename, false); else await addArticle(newPagename, false);
+                if (validProblem(newPagename)) await addProblem(newPagename, false);
+                else await addArticle(newPagename, false);
                 lastParam = newPagename;
             } else if (newProblems && newProblems !== searchParams.get("problems")) {
                 clearOptionsWithoutHistory();
@@ -3460,7 +3716,8 @@ async function jsonp_fetch(src, options = {}) {
                 await fillBatch(newProblems, false, newTestYear, newTestName);
                 lastParam = newProblems;
                 testInfo = {
-                    testYear: newTestYear, testName: newTestName
+                    testYear: newTestYear,
+                    testName: newTestName
                 };
             }
         };
