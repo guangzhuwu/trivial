@@ -1,0 +1,335 @@
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>About - Trivial Math Practice</title>
+    <meta charset="UTF-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <meta
+            content="Free AMC trainer and math learning: AMC practice problems, problem sets, mock tests with real questions from the AMC 8, AMC 10, AMC 12, AIME, and more."
+            name="description"
+    />
+    <meta content="website" property="og:type"/>
+    <meta content="/" property="og:url"/>
+    <meta content="Trivial Math Practice" property="og:title"/>
+    <meta
+            content="Free AMC trainer and math learning: AMC practice problems, problem sets, mock tests with real questions from the AMC 8, AMC 10, AMC 12, AIME, and more."
+            property="og:description"
+    />
+    <meta
+            content="icons/favicon-192x192.png"
+            property="og:image"
+    />
+    <meta content="summary" name="twitter:card"/>
+    <meta content="Trivial Math Practice" name="twitter:title"/>
+    <meta
+            content="Free AMC trainer and math learning: AMC practice problems, problem sets, mock tests with real questions from the AMC 8, AMC 10, AMC 12, AIME, and more."
+            name="twitter:description"
+    />
+    <meta
+            content="icons/favicon-192x192.png"
+            name="twitter:image"
+    />
+    <link
+            href="icons/apple-touch-icon.png"
+            rel="apple-touch-icon"
+            sizes="180x180"
+    />
+    <link
+            href="icons/favicon-192x192.png"
+            rel="icon"
+            sizes="192x192"
+            type="image/png"
+    />
+    <link href="icons/site.webmanifest" rel="manifest"/>
+    <meta content="hsl(191deg 42% 42%)" name="theme-color"/>
+    <meta content="light dark" name="color-scheme"/>
+    <script>
+        if (JSON.parse(localStorage.getItem("darkTheme"))) {
+            document
+                .querySelector("meta[name='color-scheme']")
+                .setAttribute("content", "dark");
+        }
+        if (JSON.parse(localStorage.getItem("darkTheme")) == false) {
+            document
+                .querySelector("meta[name='color-scheme']")
+                .setAttribute("content", "light");
+        }
+    </script>
+    <!--
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=UA-176118017-1"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+
+      gtag("config", "UA-176118017-1");
+    </script>
+    <script>
+      (function (w, d, s, l, i) {
+        w[l] = w[l] || [];
+        w[l].push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
+        var f = d.getElementsByTagName(s)[0],
+          j = d.createElement(s),
+          dl = l != "dataLayer" ? "&l=" + l : "";
+        j.async = true;
+        j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
+        f.parentNode.insertBefore(j, f);
+      })(window, document, "script", "dataLayer", "GTM-WFF6RGS");
+    </script>
+    -->
+</head>
+<body>
+<script>
+    if (
+        JSON.parse(localStorage.getItem("darkTheme")) ||
+        (JSON.parse(localStorage.getItem("darkTheme")) === null &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches)
+    ) {
+        document.body.style = "background: hsl(201deg 8% 12%)";
+    }
+</script>
+<link
+        href="https://cdnjs.cloudflare.com/ajax/libs/ion-rangeslider/2.3.1/css/ion.rangeSlider.min.css"
+        rel="stylesheet"
+/>
+<link
+        href="https://cdnjs.cloudflare.com/ajax/libs/tagify/4.9.4/tagify.min.css"
+        rel="stylesheet"
+/>
+<link
+        href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.15.1/katex.min.css"
+        rel="stylesheet"
+/>
+<link
+        as="font"
+        crossorigin="anonymous"
+        href="fonts/tex-gyre-pagella/pagella-regular.woff2"
+        rel="preload"
+/>
+<link
+        as="font"
+        crossorigin="anonymous"
+        href="fonts/tex-gyre-pagella/pagella-italic.woff2"
+        rel="preload"
+/>
+<link
+        as="font"
+        crossorigin="anonymous"
+        href="fonts/tex-gyre-pagella/pagella-bold.woff2"
+        rel="preload"
+/>
+<link
+        as="font"
+        crossorigin="anonymous"
+        href="fonts/computer-modern/bright/bright-regular.woff2"
+        rel="preload"
+/>
+<link
+        as="font"
+        crossorigin="anonymous"
+        href="fonts/computer-modern/bright/bright-semi.woff2"
+        rel="preload"
+/>
+<link
+        as="font"
+        crossorigin="anonymous"
+        href="fonts/computer-modern/bright/bright-semiitalic.woff2"
+        rel="preload"
+/>
+<link
+        as="font"
+        crossorigin="anonymous"
+        href="fonts/computer-modern/sans/sans-regular.woff2"
+        rel="preload"
+/>
+<link
+        as="font"
+        crossorigin="anonymous"
+        href="fonts/computer-modern/sans/sans-italic.woff2"
+        rel="preload"
+/>
+<link
+        as="font"
+        crossorigin="anonymous"
+        href="fonts/computer-modern/sans/sans-bold.woff2"
+        rel="preload"
+/>
+<link
+        as="font"
+        crossorigin="anonymous"
+        href="fonts/computer-modern/sans/sans-demi.woff2"
+        rel="preload"
+/>
+<link
+        as="font"
+        crossorigin="anonymous"
+        href="fonts/fira-mono/fira-regular.woff2"
+        rel="preload"
+/>
+<link href="src/fonts.css" rel="stylesheet"/>
+<link href="src/styles.css" id="stylesheet-link" rel="stylesheet"/>
+<script>
+    if (
+        JSON.parse(localStorage.getItem("darkTheme")) ||
+        (JSON.parse(localStorage.getItem("darkTheme")) === null &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches)
+    ) {
+        let darkStyles = document.createElement("link");
+        let styles = document.querySelector("#stylesheet-link");
+        darkStyles.id = "dark-stylesheet-link";
+        darkStyles.href = "src/dark.css";
+        darkStyles.rel = "stylesheet";
+        styles.after(darkStyles);
+    }
+</script>
+<div class="page-container">
+    <script>
+        if (
+            JSON.parse(localStorage.getItem("darkTheme")) ||
+            (JSON.parse(localStorage.getItem("darkTheme")) === null &&
+                window.matchMedia("(prefers-color-scheme: dark)").matches)
+        ) {
+            document.querySelector(".page-container").style =
+                "background: hsl(201deg 8% 15%)";
+        }
+    </script>
+    <header>
+        <h1 class="header">
+            <a href="/">Trivial.</a>
+            <svg class="logo" height="30" viewBox="0 0 132.29 264.58" width="15">
+                <title>
+                    The Trivial logo is supposed to be a QED symbol (□) — the name<!--
+                    --> Trivial represents the general and time-saving solution to<!--
+                    --> any mathematical question, as well as how this site was<!--
+                    --> (not) trivial to make.
+                </title>
+                <path
+                        d="M 34.396002,2.1733e-6 V 264.58 L 0,227.522 V 24.022002 Z"
+                        fill="#4499aa"
+                ></path>
+                <path
+                        d="M 132.296,40.179 50.274971,0 V 264.58 L 132.296,202.596 Z"
+                        fill="#44bbaa"
+                ></path>
+            </svg>
+        </h1>
+        <p class="subtitle">Studying & Practicing — AoPS Wiki Powered</p>
+    </header>
+    <main>
+        <div class="problem-section" id="about-section">
+            <h2 class="section-header" id="about-header">About Us</h2>
+            <div class="article-text" id="about-text">
+                <p>
+                    Trivial is a site for unlimited problem practice and other
+                    learning features, based on the vast database of the
+                    <a
+                            href="https://artofproblemsolving.com/wiki/index.php?title=Main_Page"
+                    >
+                        Art of Problem Solving Wiki</a
+                    >. We started it in 2020, after frustration at how inconvenient
+                    and expensive preparing for exams like the AMC could be.
+                </p>
+                <p>
+                    At its core, Trivial provides tools to efficiently get and
+                    practice solving problems, either one-by-one or in sets. In
+                    addition to the many options for filtering and finding problems,
+                    there are also various helpful features loosely inspired by
+                    resources like Alcumus and IXL, including answer checking and
+                    problem streaks. For both problems and articles we have full
+                    search and history functionality, plus a print-friendly layout.
+                </p>
+                <p>
+                    People use Trivial for various purposes, whether it’s preparing
+                    for large upcoming competitions like the AMC or sharpening math
+                    skills over the summer. Tens of thousands of learners from over a
+                    hundred countries have used Trivial — we hope you’ll find it
+                    essential in your own studies!
+                </p>
+                <h3>Acknowledgements</h3>
+                <p>
+                    This site is designed and maintained by
+                    <a href="https://vqbc.github.io">Andrew Chang</a> with help from
+                    the Trivial team of volunteers on
+                    <a href="https://github.com/vqbc/trivial">Github</a> and
+                    <a href="https://discord.gg/VExpSZfkAE">Discord</a>, and built
+                    using the libraries: <a href="https://jquery.com/">jQuery</a>,
+                    <a href="https://github.com/yairEO/tagify">Tagify</a>,
+                    <a href="http://ionden.com/a/plugins/ion.rangeSlider/"
+                    >Ion.RangeSlider</a
+                    >, <a href="https://katex.org/">KaTeX</a>,
+                    <a href="https://clipboardjs.com/">Clipboard.js</a>, &
+                    <a href="https://vega.github.io/vega/">Vega</a>, as well as icons
+                    from <a href="http://www.entypo.com/">Entypo</a>. Please
+                    <a href="https://forms.gle/3ofW7BQ5g5UBmknH9">contact us</a>
+                    for any further inquiries.
+                </p>
+                <p>
+                    Article and problem text obtained from the
+                    <a
+                            href="https://artofproblemsolving.com/wiki/index.php?title=Main_Page"
+                    >
+                        Art of Problem Solving Wiki</a
+                    >.
+                </p>
+                <p>
+                    AMC problems are copyrighted by the
+                    <a href="https://www.maa.org/">
+                        Mathematical Association of America</a
+                    >.
+                </p>
+            </div>
+        </div>
+    </main>
+    <footer>
+        <p class="footer-line disclaimer printonly">
+            Using content from the
+            <a
+                    href="https://artofproblemsolving.com/wiki/index.php/"
+                    id="aops-wiki-link"
+            >AoPS Wiki</a
+            >
+            |
+            <a href="https://amctrivial.com/">amctrivial.com</a>
+        </p>
+        <p class="footer-line siteinfo noprint">
+            <button class="text-button" id="dark-toggle" tabindex="0">
+                System theme
+            </button>
+            | <a href="about">About</a><span class="bullet"> ⋅ </span
+        ><span class="mobile-break"><br/></span>
+            <a href="https://github.com/vqbc/trivial">Github</a> ⋅
+            <a href="https://discord.gg/VExpSZfkAE">Discord</a> ⋅
+            <a href="https://forms.gle/3ofW7BQ5g5UBmknH9">Contact</a><br/>Made by
+            <a href="https://vqbc.github.io/">Andrew Chang</a>
+        </p>
+    </footer>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tagify/4.22.0/jQuery.tagify.min.js"></script>
+<!-- <script
+  crossorigin
+  src="https://unpkg.com/react@18/umd/react.development.js"
+></script>
+<script
+  crossorigin
+  src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"
+></script> -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ion-rangeslider/2.3.1/js/ion.rangeSlider.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.15.2/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.15.2/contrib/copy-tex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.15.2/contrib/mhchem.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.10/clipboard.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vega/5.21.0/vega.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vega-lite/5.2.0/vega-lite.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vega-embed/6.20.8/vega-embed.min.js"></script>
+<script src="src/index.js"></script>
+</body>
+</html>
