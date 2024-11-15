@@ -492,11 +492,12 @@ async function jsonp_fetch(src, options = {}) {
             let responseList = [];
             let begin = 0;
             while (responseList.length < paramsList.length) {
-                const range = 20;
-                let responseListSlice = await Promise.all(paramsList.slice(begin, begin + range).map((params) => jsonp_fetch(`${apiEndpoint}?${params}&origin=*`, {
-                    'onSuccess': progress,
-                    'timout': Math.max(range * 2000, 50000)
-                })));
+                const range = 50;
+                let responseListSlice = await Promise.all(paramsList.slice(begin, begin + range)
+                    .map((params) => jsonp_fetch(`${apiEndpoint}?${params}&origin=*`, {
+                        'onSuccess': progress,
+                        'timout': Math.max(range * 2000, 50000)
+                    })));
                 responseList = responseList.concat(responseListSlice)
                 begin += range;
             }
@@ -663,18 +664,22 @@ async function jsonp_fetch(src, options = {}) {
     }
 
     function defaultName() {
-        let inputDiff = $("#input-diff");
-        let diffFrom = inputDiff.data().from;
-        let diffTo = inputDiff.data().to;
-        let inputYears = $("#input-years");
-        let yearFrom = inputYears.data().from;
-        let yearTo = inputYears.data().to;
         let now = new Date().toLocaleString("en-UK", {
             year: "numeric",
             month: "short",
             day: "numeric"
-        });
-        return `Problem Set (${diffFrom} - ${diffTo}) - (${yearFrom} - ${yearTo}) - ${now}`;
+        })
+        try {
+            let inputDiff = $("#input-diff");
+            const diffFrom = inputDiff.data().from;
+            const diffTo = inputDiff.data().to;
+            const inputYears = $("#input-years");
+            const yearFrom = inputYears.data().from;
+            const yearTo = inputYears.data().to;
+            return `Problem Set (${diffFrom} - ${diffTo}) - (${yearFrom} - ${yearTo}) - ${now}`;
+        } catch (e) {
+            return `Problem Set - ${now}`;
+        }
     }
 
     function addBatch() {
