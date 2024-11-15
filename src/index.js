@@ -13,24 +13,47 @@ async function jsonp_fetch(src, options = {}) {
         const callbackName = `jsonp_${Date.now()}_${jsonp_fetch.counter}_${Math.random().toString(36).replace('.', '')}`;
         const url = `${src}${src.indexOf('?') === -1 ? '?' : '&'}callback=${callbackName}`; // Use template literal
         const script = document.createElement('script');
+        const timeoutId = setTimeout(() => {
+            script.onerror('Timeout!');
+        }, options.timeout || 100000);
+
         script.src = url;
         script.async = true;
+        /*
+        script.onload = function (evt) {
+            console.log(callbackName + ': script onload');
+            if (script.parentNode) {
+                script.parentNode.removeChild(script);
+            }
+            window.clearTimeout(timeoutId);
+            delete window[callbackName];
+        }
+        */
+        script.onerror = (evt) => {
+            console.log(callbackName + ': Script error! ' + evt);
+            if (script.parentNode) {
+                script.parentNode.removeChild(script);
+            }
+            window.clearTimeout(timeoutId);
 
-        script.onerror = () => {
             const response = new Response(JSON.stringify(''), {
                 status: 408,
                 statusText: "Script load failed",
             });
-            console.log(response);
             resolve(response);
             if (options.onError) {
-                const error = new Error('Script load failed');
+                const error = new Error('Script error!');
                 options.onError(error); // Pass the error object
             }
         };
 
+
         window[callbackName] = (data) => {
-            script.remove();
+            //console.log(callbackName + ': window callbackName');
+            if (script.parentNode) {
+                script.parentNode.removeChild(script);
+            }
+            window.clearTimeout(timeoutId);
             delete window[callbackName];
             const response = new Response(JSON.stringify(data), {
                 status: data.status,
@@ -450,6 +473,102 @@ async function jsonp_fetch(src, options = {}) {
         }
     })();
 
+    async function fetchProblems(totalCount, inputProblemTitles, skipProblems = null, pages = null) {
+        let problems = [];
+        let redirIndex = {};
+
+        let counter = 0;
+
+        function progress() {
+            counter += 1
+            $(".loading-bar").css("width", `${(problems.length ? problems.length : counter) / totalCount * 90}%`);
+        }
+
+
+        const apiEndpoint = "https://artofproblemsolving.com/wiki/api.php";
+        while (problems.length < totalCount) {
+            let paramsList = inputProblemTitles.map((currentProblem) => `action=parse&page=${currentProblem}&format=json`);
+            console.log(paramsList);
+            let responseList = [];
+            let begin = 0;
+            while (responseList.length < paramsList.length) {
+                const range = 20;
+                let responseListSlice = await Promise.all(paramsList.slice(begin, begin + range).map((params) => jsonp_fetch(`${apiEndpoint}?${params}&origin=*`, {
+                    'onSuccess': progress,
+                    'timout': Math.max(range * 2000, 50000)
+                })));
+                responseList = responseList.concat(responseListSlice)
+                begin += range;
+            }
+            console.log(responseList);
+            let jsonList = await Promise.all(responseList.map((response) => response.json()));
+            console.log(jsonList);
+
+            let redirList = [];
+            for (let [index, currentProblem] of inputProblemTitles.entries()) {
+                let json = jsonList[index];
+                let problemText = (json?.parse) ? latexer(json.parse.text["*"]) : '';
+                let problemProblem = getProblem(problemText);
+                let problemSolutions = getSolutions(problemText);
+
+                if (problemProblem && problemSolutions) {
+                    if (redirIndex[currentProblem]) problems.splice(redirIndex[currentProblem], 0, {
+                        title: currentProblem,
+                        difficulty: computeDifficulty(computeTest(currentProblem), computeNumber(currentProblem), computeYear(currentProblem)),
+                        problem: problemProblem,
+                        solutions: problemSolutions,
+                    });
+                    else problems.push({
+                        title: currentProblem,
+                        difficulty: computeDifficulty(computeTest(currentProblem), computeNumber(currentProblem), computeYear(currentProblem)),
+                        problem: problemProblem,
+                        solutions: problemSolutions,
+                    });
+
+                } else if (problemText.includes("Redirect to:")) {
+                    console.log("Redirect problem, going there instead...");
+                    let redirHref = $($.parseHTML(problemText))
+                        .find(".redirectText a")
+                        .attr("href");
+                    let redirPage = redirHref
+                        .replace("/wiki/index.php/", "")
+                        .replace(/_/g, " ");
+                    console.log(redirPage);
+                    redirList.push(redirPage);
+                    redirIndex[redirPage] = index;
+                } else {
+                    console.log("Invalid problem, skipping...");
+                }
+            }
+
+            inputProblemTitles = []
+            if (redirList.length) {
+                inputProblemTitles = redirList;
+            } else {
+                let randomList = []
+                while ((randomList.length + problems.length) < totalCount && pages && pages.length !== 0) {
+                    while (true) {
+                        let pageIndex = Math.floor(Math.random() * pages.length);
+                        let randomPage = pages[pageIndex];
+                        pages.splice(pageIndex, 1);
+                        if (!skipProblems || !skipProblems.includes(randomPage)) {
+                            randomList.push(randomPage);
+                            break
+                        }
+                    }
+                }
+                inputProblemTitles = randomList
+            }
+
+            if (inputProblemTitles.length <= 0) {
+                break
+            }
+        }
+        console.log(problems)
+        return problems;
+    }
+
+
     // Adds things
     async function addProblem(pagename, pushUrl) {
         $(".notes").before(`<div class="problem-section" id="problem-section">
@@ -476,38 +595,12 @@ async function jsonp_fetch(src, options = {}) {
 
         localStorage.setItem("numProblems", JSON.parse(localStorage.getItem("numProblems")) + 1);
 
-        let apiEndpoint = "https://artofproblemsolving.com/wiki/api.php";
-        let params = `action=parse&page=${pagename}&format=json`;
-
-        let response = await jsonp_fetch(`${apiEndpoint}?${params}&origin=*`);
-        let json = await response.json();
         let finalPage = pagename;
-
-        if (json?.parse) {
-            let problemText = (json?.parse) ? latexer(json.parse.text["*"]) : '';
-            let problemProblem = getProblem(problemText);
-            let problemSolutions = getSolutions(problemText);
-
-            if (problemProblem && problemSolutions) {
-            } else if (problemText.includes("Redirect to:")) {
-                console.log("Redirect problem, going there instead...");
-
-                let redirHref = $($.parseHTML(problemText))
-                    .find(".redirectText a")
-                    .attr("href");
-                let redirPage = redirHref
-                    .replace("/wiki/index.php/", "")
-                    .replace(/_/g, " ");
-                console.log(redirPage);
-
-                params = `action=parse&page=${redirPage}&format=json`;
-                response = await jsonp_fetch(`${apiEndpoint}?${params}&origin=*`);
-                json = await response.json();
-                problemText = (json?.parse) ? latexer(json.parse.text["*"]) : '';
-                problemProblem = getProblem(problemText);
-                problemSolutions = getSolutions(problemText);
-                finalPage = redirPage;
-            }
+        let problem = await fetchProblems(1, [pagename]);
+        if (problem.length) {
+            let problemProblem = problem[0]['problem'];
+            let problemSolutions = problem[0]['solutions'];
+            finalPage = problem[0]['title'];
 
             addHistory(pagename, sourceCleanup(problemProblem).substring(0, 140));
 
@@ -728,91 +821,14 @@ async function jsonp_fetch(src, options = {}) {
             let problemTitles = pagenames
                 .split("|")
                 .map((e) => e.replace(/_/g, " ").replace("#", "Problems/Problem "));
-            let redirList = [];
-            let redirIndex = [];
             let numProblems = problemTitles.length;
-            let invalidProblems = 0;
-
-            let apiEndpoint = "https://artofproblemsolving.com/wiki/api.php";
-
             $("#batch-header").after(`<div class="loading-notice">
                       <div class="loading-text">Loading problems…</div>
                       <div class="loading-bar-container">
                         <div class="loading-bar"></div>
                       </div>
                     </div>`);
-
-            let paramsList = problemTitles.map((currentProblem) => `action=parse&page=${currentProblem}&format=json`);
-            console.log(paramsList);
-            let responseList = await Promise.all(paramsList.map((params) => jsonp_fetch(`${apiEndpoint}?${params}&origin=*`)));
-            console.log(responseList);
-            let jsonList = await Promise.all(responseList.map((response) => response.json()));
-            console.log(jsonList);
-
-            for (let [index, currentProblem] of problemTitles.entries()) {
-                let json = jsonList[index];
-                let problemText = ''
-                if (json?.parse) {
-                    problemText = (json?.parse) ? latexer(json.parse.text["*"]) : '';
-                }
-                let problemProblem = getProblem(problemText);
-                let problemSolutions = getSolutions(problemText);
-
-                if (problemProblem && problemSolutions) {
-                    problems.push({
-                        title: currentProblem,
-                        difficulty: computeDifficulty(computeTest(currentProblem), computeNumber(currentProblem), computeYear(currentProblem)),
-                        problem: problemProblem,
-                        solutions: problemSolutions,
-                    });
-
-                    $(".loading-bar").css("width", `${((problems.length + invalidProblems) / numProblems) * 100}%`);
-                } else if (problemText.includes("Redirect to:")) {
-                    console.log("Redirect problem, going there instead...");
-
-                    let redirHref = $($.parseHTML(problemText))
-                        .find(".redirectText a")
-                        .attr("href");
-                    let redirPage = redirHref
-                        .replace("/wiki/index.php/", "")
-                        .replace(/_/g, " ");
-                    console.log(redirPage);
-                    redirList.push(redirPage);
-                    redirIndex.push(index);
-
-                    $(".loading-bar").css("width", `${((problems.length + invalidProblems) / numProblems) * 100}%`);
-                } else {
-                    console.log("Invalid problem, skipping...");
-                    invalidProblems++;
-                }
-            }
-
-            if (redirList[0]) {
-                paramsList = redirList.map((redirPage) => `action=parse&page=${redirPage}&format=json`);
-                console.log(paramsList);
-                responseList = await Promise.all(paramsList.map((params) => jsonp_fetch(`${apiEndpoint}?${params}&origin=*`)));
-                console.log(responseList);
-                jsonList = await Promise.all(responseList.map((response) => response.json()));
-                console.log(jsonList);
-
-                for (let [index, currentProblem] of redirList.entries()) {
-                    let json = jsonList[index];
-                    let problemText = ''
-                    if (json?.parse) {
-                        problemText = (json?.parse) ? latexer(json.parse.text["*"]) : '';
-                    }
-                    let problemProblem = getProblem(problemText);
-                    let problemSolutions = getSolutions(problemText);
-
-                    problems.splice(redirIndex[index], 0, {
-                        title: currentProblem,
-                        difficulty: computeDifficulty(computeTest(currentProblem), computeNumber(currentProblem), computeYear(currentProblem)),
-                        problem: problemProblem,
-                        solutions: problemSolutions,
-                    });
-                }
-            }
-
+            problems = await fetchProblems(numProblems, problemTitles);
             if (clickedTimes === clickedTimesThen) {
                 console.log(problems);
                 addProblems(problems, false);
@@ -1133,7 +1149,7 @@ async function jsonp_fetch(src, options = {}) {
                     .children()
                     .each(function () {
                         let statsMatch = /floor|cutoff|roll|DHR|Distinction|Median|Average/i;
-                        statName = $(this)
+                        let statName = $(this)
                             .text()
                             .replace("Distinguished Honor Roll", "DHR")
                             .replace("Honor roll", "Honor Roll");
@@ -2062,92 +2078,24 @@ async function jsonp_fetch(src, options = {}) {
         async function makeBatch(fullTest) {
             console.log(fullTest);
             let problemTitles = sortProblems(allProblems).filter((e) => e.includes(sanitize(`${$("#input-singleyear").val()} ${fullTest} Problems/Problem `)));
-            let redirList = [];
-            let redirIndex = [];
             let numProblems = problemTitles.length;
-            let apiEndpoint = "https://artofproblemsolving.com/wiki/api.php";
-
-            $("#batch-header").after(`<div class="loading-notice">
+            let problems = []
+            if (clickedTimes === clickedTimesThen) {
+                $("#batch-header").after(`<div class="loading-notice">
                       <div class="loading-text">Loading problems…</div>
                       <div class="loading-bar-container">
                         <div class="loading-bar"></div>
                       </div>
                     </div>`);
 
-            let paramsList = problemTitles.map((currentProblem) => `action=parse&page=${currentProblem}&format=json`);
-            console.log(paramsList);
-            let responseList = await Promise.all(paramsList.map((params) => jsonp_fetch(`${apiEndpoint}?${params}&origin=*`)));
-            console.log(responseList);
-            let jsonList = await Promise.all(responseList.map((response) => response.json()));
-            console.log(jsonList);
+                problems = await fetchProblems(numProblems, problemTitles)
 
-            for (let [index, currentProblem] of problemTitles.entries()) {
-                let json = jsonList[index];
-                let problemText = ''
-                if (json?.parse) {
-                    problemText = (json?.parse) ? latexer(json.parse.text["*"]) : '';
-                }
-                let problemProblem = getProblem(problemText);
-                let problemSolutions = getSolutions(problemText);
-
-                if (problemProblem && problemSolutions) {
-                    problems.push({
-                        title: currentProblem,
-                        difficulty: computeDifficulty(computeTest(currentProblem), computeNumber(currentProblem), computeYear(currentProblem)),
-                        problem: problemProblem,
-                        solutions: problemSolutions,
-                    });
-                } else if (problemText.includes("Redirect to:")) {
-                    console.log("Redirect problem, going there instead...");
-
-                    let redirHref = $($.parseHTML(problemText))
-                        .find(".redirectText a")
-                        .attr("href");
-                    let redirPage = redirHref
-                        .replace("/wiki/index.php/", "")
-                        .replace(/_/g, " ");
-                    console.log(redirPage);
-                    redirList.push(redirPage);
-                    redirIndex.push(index);
-
-                    $(".loading-bar").css("width", `${(problems.length / numProblems) * 100}%`);
-                } else {
-                    console.log("Invalid problem, skipping...");
-                }
-            }
-
-            if (redirList[0]) {
-                paramsList = redirList.map((redirPage) => `action=parse&page=${redirPage}&format=json`);
-                console.log(paramsList);
-                responseList = await Promise.all(paramsList.map((params) => jsonp_fetch(`${apiEndpoint}?${params}&origin=*`)));
-                console.log(responseList);
-                jsonList = await Promise.all(responseList.map((response) => response.json()));
-                console.log(jsonList);
-
-                for (let [index, currentProblem] of redirList.entries()) {
-                    let json = jsonList[index];
-                    let problemText = ''
-                    if (json?.parse) {
-                        problemText = (json?.parse) ? latexer(json.parse.text["*"]) : '';
-                    }
-                    let problemProblem = getProblem(problemText);
-                    let problemSolutions = getSolutions(problemText);
-
-                    problems.splice(redirIndex[index], 0, {
-                        title: currentProblem,
-                        difficulty: computeDifficulty(computeTest(currentProblem), computeNumber(currentProblem), computeYear(currentProblem)),
-                        problem: problemProblem,
-                        solutions: problemSolutions,
-                    });
-                }
-            }
-
-            if (clickedTimes === clickedTimesThen) {
                 addHistoryBatch(problems.map((e) => e.title), sourceCleanup(problems[0].problem).substring(0, 140), $("#input-name").val() ? sanitize($("#input-name").val()) : sanitize(`${$("#input-singleyear").val()} ${fullTest}`), $("#input-singleyear").val(), fullTest);
 
                 console.log(problems);
                 addProblems(problems, false);
             }
+            return problems
         }
 
         clickedTimes++;
@@ -2156,7 +2104,6 @@ async function jsonp_fetch(src, options = {}) {
 
         addBatch();
 
-        let problems = [];
         if (!$("#input-singletest").val()) {
             $(".article-text").before(`<p class="error">
                       No test was entered.
@@ -2190,7 +2137,7 @@ async function jsonp_fetch(src, options = {}) {
             }
             fullTest = `${preTest}${$("#input-singletest").val()}${postTest}`;
 
-            await makeBatch(fullTest);
+            let problems = await makeBatch(fullTest);
 
             if (clickedTimes === clickedTimesThen) {
                 $(".loading-notice").remove();
@@ -2201,9 +2148,9 @@ async function jsonp_fetch(src, options = {}) {
                 document.title = name + " - Trivial Math Practice";
 
                 history.pushState({
-                    problems: problems.map((e) => underscores(e.title)).join("|"),
-                    testyear: $("#input-singleyear").val(),
-                    testname: fullTest,
+                    "problems": problems.map((e) => underscores(e.title)).join("|"),
+                    "testyear": $("#input-singleyear").val(),
+                    "testname": fullTest,
                 }, name + " - Trivial Math Practice", `?problems=${problems
                     .map((e) => underscores(e.title))
                     .join("|")}&testyear=${$("#input-singleyear").val()}&testname=${fullTest}`);
@@ -2226,13 +2173,8 @@ async function jsonp_fetch(src, options = {}) {
                 .val()
                 .split(",")
                 .map((e) => e.replace("#", "Problems/Problem "));
-            let redirList = [];
-            let redirIndex = [];
             let numProblems = problemTitles.length;
-            let invalidProblems = 0;
-
-            let apiEndpoint = "https://artofproblemsolving.com/wiki/api.php";
-
+            let problems = []
             $("#batch-header").after(`<div class="loading-notice">
                       <div class="loading-text">Loading problems…</div>
                       <div class="loading-bar-container">
@@ -2240,78 +2182,9 @@ async function jsonp_fetch(src, options = {}) {
                       </div>
                     </div>`);
 
-            let paramsList = problemTitles.map((currentProblem) => `action=parse&page=${currentProblem}&format=json`);
-            console.log(paramsList);
-            let responseList = await Promise.all(paramsList.map((params) => jsonp_fetch(`${apiEndpoint}?${params}&origin=*`)));
-            console.log(responseList);
-            let jsonList = await Promise.all(responseList.map((response) => response.json()));
-            console.log(jsonList);
-
-            for (let [index, currentProblem] of problemTitles.entries()) {
-                let json = jsonList[index];
-                let problemText = ''
-                if (json?.parse) {
-                    problemText = (json?.parse) ? latexer(json.parse.text["*"]) : '';
-                }
-                let problemProblem = getProblem(problemText);
-                let problemSolutions = getSolutions(problemText);
-
-                if (problemProblem && problemSolutions) {
-                    problems.push({
-                        title: currentProblem,
-                        difficulty: computeDifficulty(computeTest(currentProblem), computeNumber(currentProblem), computeYear(currentProblem)),
-                        problem: problemProblem,
-                        solutions: problemSolutions,
-                    });
-
-                    $(".loading-bar").css("width", `${((problems.length + invalidProblems) / numProblems) * 100}%`);
-                } else if (problemText.includes("Redirect to:")) {
-                    console.log("Redirect problem, going there instead...");
-
-                    let redirHref = $($.parseHTML(problemText))
-                        .find(".redirectText a")
-                        .attr("href");
-                    let redirPage = redirHref
-                        .replace("/wiki/index.php/", "")
-                        .replace(/_/g, " ");
-                    console.log(redirPage);
-                    redirList.push(redirPage);
-                    redirIndex.push(index);
-
-                    $(".loading-bar").css("width", `${((problems.length + invalidProblems) / numProblems) * 100}%`);
-                } else {
-                    console.log("Invalid problem, skipping...");
-                    invalidProblems++;
-                }
-            }
-
-            if (redirList[0]) {
-                paramsList = redirList.map((redirPage) => `action=parse&page=${redirPage}&format=json`);
-                console.log(paramsList);
-                responseList = await Promise.all(paramsList.map((params) => jsonp_fetch(`${apiEndpoint}?${params}&origin=*`)));
-                console.log(responseList);
-                jsonList = await Promise.all(responseList.map((response) => response.json()));
-                console.log(jsonList);
-
-                for (let [index, currentProblem] of redirList.entries()) {
-                    let json = jsonList[index];
-                    let problemText = ''
-                    if (json?.parse) {
-                        problemText = (json?.parse) ? latexer(json.parse.text["*"]) : '';
-                    }
-                    let problemProblem = getProblem(problemText);
-                    let problemSolutions = getSolutions(problemText);
-
-                    problems.splice(redirIndex[index], 0, {
-                        title: currentProblem,
-                        difficulty: computeDifficulty(computeTest(currentProblem), computeNumber(currentProblem), computeYear(currentProblem)),
-                        problem: problemProblem,
-                        solutions: problemSolutions,
-                    });
-                }
-            }
-
             if (clickedTimes === clickedTimesThen) {
+                problems = await fetchProblems(numProblems, problemTitles);
+
                 if ($("#input-sort").prop("checked")) problems.sort((a, b) => a.difficulty - b.difficulty);
 
                 addHistoryBatch(problems.map((e) => e.title), sourceCleanup(problems[0].problem).substring(0, 140), $("#input-name").val());
@@ -2319,6 +2192,7 @@ async function jsonp_fetch(src, options = {}) {
                 console.log(problems);
                 addProblems(problems, false);
             }
+            return problems;
         }
 
         clickedTimes++;
@@ -2337,13 +2211,13 @@ async function jsonp_fetch(src, options = {}) {
             $("#batch-header").html("Error");
             $("#solutions-section").remove();
         } else {
-            await makeBatch();
+            problems = await makeBatch();
         }
 
         if (clickedTimes === clickedTimesThen) {
             let name = $("#input-name").val();
             history.pushState({
-                problems: problems.map((e) => underscores(e.title)).join("|")
+                "problems": problems.map((e) => underscores(e.title)).join("|")
             }, name + " - Trivial Math Practice", "?problems=" + problems.map((e) => underscores(e.title)).join("|"));
             searchParams = new URLSearchParams(location.search);
             lastParam = searchParams.get("problems");
@@ -2363,214 +2237,23 @@ async function jsonp_fetch(src, options = {}) {
         }
     });
 
+
     $(".page-container").on("click", "#ranbatch-button", async () => {
         async function makeBatch() {
+            let inputProblems = $("#input-problems");
             let numProblems = Math.min(inputNumber.data().from, pages.length);
-            let randomPage;
-            let pageIndex;
-            let randomList = [];
-            let redirList = [];
-            let redirIndex = [];
-            let problemTitles = inputProblems
-                .val()
-                .split(",")
-                .map((e) => e.replace("#", "Problems/Problem "));
-            let skipProblems = inputSkip
-                .val()
-                .split(",")
-                .map((e) => e.replace("#", "Problems/Problem "));
-
-            let apiEndpoint = "https://artofproblemsolving.com/wiki/api.php";
-            let params;
-            let response;
-            let json;
-
-            if (clickedTimes === clickedTimesThen) $("#batch-header").after(`<div class="loading-notice">
+            let problemTitles = inputProblems.val().split(",").map((e) => e.replace("#", "Problems/Problem "));
+            let skipProblems = inputSkip.val().split(",").map((e) => e.replace("#", "Problems/Problem "));
+            let problems = [];
+            if (clickedTimes === clickedTimesThen) {
+                $("#batch-header").after(`<div class="loading-notice">
                       <div class="loading-text">Loading problems…</div>
                       <div class="loading-bar-container">
                         <div class="loading-bar"></div>
                       </div>
                     </div>`);
 
-            if (inputProblems.val()) {
-                let paramsList = problemTitles.map((currentProblem) => `action=parse&page=${currentProblem}&format=json`);
-                console.log(paramsList);
-                let responseList = await Promise.all(paramsList.map((params) => jsonp_fetch(`${apiEndpoint}?${params}&origin=*`)));
-                console.log(responseList);
-                let jsonList = await Promise.all(responseList.map((response) => response.json()));
-                console.log(jsonList);
-
-                for (let [index, currentProblem] of problemTitles.entries()) {
-                    let json = jsonList[index];
-                    let problemText = ''
-                    if (json?.parse) {
-                        problemText = (json?.parse) ? latexer(json.parse.text["*"]) : '';
-                    }
-                    let problemProblem = getProblem(problemText);
-                    let problemSolutions = getSolutions(problemText);
-
-                    if (problemProblem && problemSolutions) {
-                        problems.push({
-                            title: currentProblem,
-                            difficulty: computeDifficulty(computeTest(currentProblem), computeNumber(currentProblem), computeYear(currentProblem)),
-                            problem: problemProblem,
-                            solutions: problemSolutions,
-                        });
-
-                        $(".loading-bar").css("width", `${(problems.length / numProblems) * 100}%`);
-                    } else if (problemText.includes("Redirect to:")) {
-                        console.log("Redirect problem, going there instead...");
-
-                        let redirHref = $($.parseHTML(problemText))
-                            .find(".redirectText a")
-                            .attr("href");
-                        let redirPage = redirHref
-                            .replace("/wiki/index.php/", "")
-                            .replace(/_/g, " ");
-                        console.log(redirPage);
-                        redirList.push(redirPage);
-                        redirIndex.push(index);
-
-                        $(".loading-bar").css("width", `${(problems.length / numProblems) * 100}%`);
-                    } else {
-                        console.log("Invalid problem, skipping...");
-                    }
-                }
-            }
-            while (randomList.length + problems.length < numProblems && pages.length !== 0 && clickedTimes === clickedTimesThen) {
-                while (true) {
-                    pageIndex = Math.floor(Math.random() * pages.length);
-                    randomPage = pages[pageIndex];
-
-                    let blockedProblem = skipProblems.includes(randomPage);
-                    if (blockedProblem) {
-                        pages.splice(pageIndex, 1);
-                    } else {
-                        randomList.push(randomPage);
-                        pages.splice(pageIndex, 1);
-                        break
-                    }
-                }
-            }
-
-
-            let fetchCounter = 0
-
-            function fetchProgress() {
-                fetchCounter += 1;
-                $(".loading-bar").css("width", `${((fetchCounter / numProblems) * 50)}%`);
-            }
-
-            let paramsList = randomList.map((currentProblem) => `action=parse&page=${currentProblem}&format=json`);
-            console.log(paramsList);
-            let responseList = await Promise.all(paramsList.map((params) => jsonp_fetch(`${apiEndpoint}?${params}&origin=*`, {'onSuccess': fetchProgress})));
-            console.log(responseList);
-            let jsonList = await Promise.all(responseList.map((response) => response.json()));
-            console.log(jsonList);
-
-            for (let [index, randomPage] of randomList.entries()) {
-                let json = jsonList[index];
-                let problemText = ''
-                if (json?.parse) {
-                    problemText = (json?.parse) ? latexer(json.parse.text["*"]) : '';
-                }
-                let problemProblem = getProblem(problemText);
-                let problemSolutions = getSolutions(problemText);
-
-                if (problemProblem && problemSolutions) {
-                    problems.push({
-                        title: randomPage,
-                        difficulty: computeDifficulty(computeTest(randomPage), computeNumber(randomPage), computeYear(randomPage)),
-                        problem: problemProblem,
-                        solutions: problemSolutions,
-                    });
-
-                    $(".loading-bar").css("width", `${50 + (problems.length / numProblems) * 50}%`);
-                } else if (problemText.includes("Redirect to:")) {
-                    console.log("Redirect problem, going there instead...");
-
-                    let redirHref = $($.parseHTML(problemText))
-                        .find(".redirectText a")
-                        .attr("href");
-                    let redirPage = redirHref
-                        .replace("/wiki/index.php/", "")
-                        .replace(/_/g, " ");
-                    console.log(redirPage);
-                    redirList.push(redirPage);
-
-                    $(".loading-bar").css("width", `${50 + (problems.length / numProblems) * 50}%`);
-                } else {
-                    console.log("Invalid problem, skipping...");
-
-                    let blockedProblem = true;
-
-                    while (blockedProblem) {
-                        pageIndex = Math.floor(Math.random() * pages.length);
-                        randomPage = pages[pageIndex];
-
-                        blockedProblem = skipProblems.includes(randomPage);
-                        if (blockedProblem) pages.splice(pageIndex, 1);
-                    }
-                    console.log(randomPage);
-                    pages.splice(pageIndex, 1);
-
-                    params = `action=parse&page=${randomPage}&format=json`;
-                    response = await jsonp_fetch(`${apiEndpoint}?${params}&origin=*`);
-                    json = await response.json();
-                    problemText = json.parse ? latexer(json.parse.text["*"]) : '';
-                    problemProblem = getProblem(problemText);
-                    problemSolutions = getSolutions(problemText);
-
-                    problems.push({
-                        title: randomPage,
-                        difficulty: computeDifficulty(computeTest(randomPage), computeNumber(randomPage), computeYear(randomPage)),
-                        problem: problemProblem,
-                        solutions: problemSolutions,
-                    });
-                }
-            }
-
-            if (redirList[0]) {
-                let redirectCounter = 0
-
-                function redirectProgress() {
-                    redirectCounter += 1;
-                    $(".loading-bar").css("width", `${(problems.length + redirectCounter) / numProblems * 100}%`);
-                }
-
-                paramsList = redirList.map((redirPage) => `action=parse&page=${redirPage}&format=json`);
-                console.log(paramsList);
-                responseList = await Promise.all(paramsList.map((params) => jsonp_fetch(`${apiEndpoint}?${params}&origin=*`, {'onSuccess': redirectProgress})));
-                //responseList = responseList.filter(result => result.status === '200').map(result => result.value);
-                console.log(responseList);
-                jsonList = await Promise.all(responseList.map((response) => response.json()));
-                console.log(jsonList);
-
-                for (let [index, currentProblem] of redirList.entries()) {
-                    let json = jsonList[index];
-                    let problemText = ''
-                    if (json?.parse) {
-                        problemText = (json?.parse) ? latexer(json.parse.text["*"]) : '';
-                    }
-                    let problemProblem = getProblem(problemText);
-                    let problemSolutions = getSolutions(problemText);
-
-                    if (redirIndex[index]) problems.splice(redirIndex[index], 0, {
-                        title: currentProblem,
-                        difficulty: computeDifficulty(computeTest(currentProblem), computeNumber(currentProblem), computeYear(currentProblem)),
-                        problem: problemProblem,
-                        solutions: problemSolutions,
-                    });
-                    else problems.push({
-                        title: currentProblem,
-                        difficulty: computeDifficulty(computeTest(currentProblem), computeNumber(currentProblem), computeYear(currentProblem)),
-                        problem: problemProblem,
-                        solutions: problemSolutions,
-                    });
-                }
-            }
-
-            if (clickedTimes === clickedTimesThen) {
+                problems = await fetchProblems(numProblems, problemTitles, skipProblems, pages);
                 if ($("#input-sort").prop("checked")) problems.sort((a, b) => a.difficulty - b.difficulty);
 
                 addHistoryBatch(problems.map((e) => e.title), sourceCleanup(problems[0].problem).substring(0, 140), $("#input-name").val());
@@ -2578,6 +2261,7 @@ async function jsonp_fetch(src, options = {}) {
                 console.log(problems);
                 addProblems(problems, true);
             }
+            return problems;
         }
 
         clickedTimes++;
@@ -2587,7 +2271,6 @@ async function jsonp_fetch(src, options = {}) {
         addBatch();
 
         let inputNumber = $("#input-number");
-        let inputProblems = $("#input-problems");
         let inputSkip = $("#input-skip");
 
         let pages = await getPages();
@@ -2601,7 +2284,7 @@ async function jsonp_fetch(src, options = {}) {
             $("#batch-header").html("Error");
             $("#solutions-section").remove();
         } else {
-            await makeBatch();
+            problems = await makeBatch();
         }
 
         let name = $("#input-name").val();
@@ -3026,9 +2709,7 @@ async function jsonp_fetch(src, options = {}) {
     async function replaceProblems(problems) {
         $(".replace-problem").on('click', async function () {
             async function replace() {
-                let pageIndex;
-                let randomPage;
-                let newProblem;
+                let newProblem = null;
                 let giveUp = false;
 
                 let apiEndpoint = "https://artofproblemsolving.com/wiki/api.php";
@@ -3037,60 +2718,12 @@ async function jsonp_fetch(src, options = {}) {
                 let json;
 
                 while (!newProblem && !giveUp) {
-                    pageIndex = Math.floor(Math.random() * pages.length);
-                    randomPage = pages[pageIndex];
-                    console.log(randomPage);
-
-                    params = `action=parse&page=${randomPage}&format=json`;
-                    response = await jsonp_fetch(`${apiEndpoint}?${params}&origin=*`);
-                    json = await response.json();
-
-                    let problemText = (json?.parse) ? latexer(json.parse.text["*"]) : '';
-                    let problemProblem = getProblem(problemText);
-                    let problemSolutions = getSolutions(problemText);
-
-                    if (problemProblem && problemSolutions) {
-                        newProblem = {
-                            title: randomPage,
-                            difficulty: computeDifficulty(computeTest(randomPage), computeNumber(randomPage), computeYear(randomPage)),
-                            problem: problemProblem,
-                            solutions: problemSolutions,
-                        };
-
+                    let fetchedProblem = await fetchProblems(1, [], null, pages)
+                    if (fetchedProblem.length) {
+                        newProblem = fetchedProblem[0];
                         problems.push(newProblem);
-                        pages.splice(pageIndex, 1);
-                    } else if (problemText.includes("Redirect to:")) {
-                        console.log("Redirect problem, going there instead...");
-
-                        let redirHref = $($.parseHTML(problemText))
-                            .find(".redirectText a")
-                            .attr("href");
-                        let redirPage = redirHref
-                            .replace("/wiki/index.php/", "")
-                            .replace(/_/g, " ");
-                        console.log(redirPage);
-
-                        params = `action=parse&page=${redirPage}&format=json`;
-                        response = await jsonp_fetch(`${apiEndpoint}?${params}&origin=*`);
-                        json = await response.json();
-
-                        problemText = (json?.parse) ? latexer(json.parse.text["*"]) : '';
-                        problemProblem = getProblem(problemText);
-                        problemSolutions = getSolutions(problemText);
-
-                        newProblem = {
-                            title: randomPage,
-                            difficulty: computeDifficulty(computeTest(randomPage), computeNumber(randomPage), computeYear(randomPage)),
-                            problem: problemProblem,
-                            solutions: problemSolutions,
-                        };
-
-                        problems.push(newProblem);
-                        pages.splice(pageIndex, 1);
                     } else {
-                        console.log("Invalid problem, skipping...");
-                        pages.splice(pageIndex, 1);
-                        if (!pages.length) giveUp = true;
+                        giveUp = true;
                     }
                     if (newProblem) {
                         $(`#batch-text .article-problem:nth-child(${replacedIndex})`)
@@ -3245,17 +2878,27 @@ async function jsonp_fetch(src, options = {}) {
             let replacedProblem = $(this).closest(".article-problem");
             let replacedIndex = replacedProblem.attr("index");
             let replacedDifficulty = replacedProblem.attr("difficulty");
-
+            console.log('replacedDifficulty:' + replacedDifficulty)
             let pages = await getPages();
             pages = pages.filter((problem) => !problems.map((e) => e.title).includes(problem));
-            if ($("#input-sort").prop("checked")) pages = pages.filter((problem) => computeDifficulty(computeTest(problem), computeNumber(problem), computeYear(problem)) === replacedDifficulty);
+            if ($("#input-sort").prop("checked")) {
+                let newPages = pages.filter((problem) => computeDifficulty(computeTest(problem), computeNumber(problem), computeYear(problem)) === replacedDifficulty);
+                if (!newPages.length) {
+                    newPages = pages.filter((problem) => Math.abs(computeDifficulty(computeTest(problem), computeNumber(problem), computeYear(problem)) - replacedDifficulty) <= 0.25);
+                }
+                pages = newPages;
+            }
+            console.log(pages);
 
             console.log(`${pages.length} total problems retrieved.`);
-            if (!pages.length) $(this).replaceWith(`<span class="replace-notice">No replacements found</span>`);
-            else {
+            if (!pages.length) {
+                $(this).replaceWith(`<span class="replace-notice">No replacements found</span>`);
+            } else {
                 await replace();
                 console.log(problems);
-                if (!pages.length) $(this).replaceWith(`<span class="replace-notice">No replacements found</span>`);
+                if (!pages.length) {
+                    $(this).replaceWith(`<span class="replace-notice">No replacements found</span>`);
+                }
             }
         });
     }
