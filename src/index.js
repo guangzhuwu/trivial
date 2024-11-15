@@ -1186,22 +1186,27 @@ async function jsonp_fetch(src, options = {}) {
 
     function computeDifficulty(test, num, year) {
         let diff = null;
-        let range;
+        let range = null;
         switch (test) {
             case "AMC 8":
                 range = [0.25, 2.0, 25];
+                //diff = num < 4 ? 0.25 : num < 7 ? 0.5 : num < 10 ? 0.75 : num < 13 ? 1 : num < 17 ? 1.25 : num < 21 ? 1.5 : num < 24 ? 1.75 : 2;
                 break;
             case "AMC 10":
                 range = [1.0, 4.5, 25];
+                //diff = num < 4 ? 1 : num < 7 ? 1.5 : num < 10 ? 1.75 : num < 13 ? 2 : num < 15 ? 2.25 : num < 17 ? 2.5 : num < 19 ? 2.75 : num < 21 ? 3 : num < 23 ? 3.5 : num < 25 ? 4 : 4.5;
                 break;
             case "AMC 12":
                 range = [1.25, 5.5, 25];
+                //diff = num < 4 ? 1.25 : num < 6 ? 1.5 : num < 9 ? 1.75 : num < 11 ? 2 : num < 14 ? 2.5 : num < 17 ? 3 : num < 19 ? 3.25 : num < 21 ? 3.5 : num < 23 ? 4 : num < 24 ? 4.5 : num < 25 ? 5 : 5.5;
                 break;
             case "AHSME":
                 range = [1.0, 5.5, 35];
+                //diff = num < 4 ? 1 : num < 7 ? 1.5 : num < 10 ? 1.75 : num < 13 ? 2 : num < 15 ? 2.25 : num < 17 ? 2.5 : num < 19 ? 2.75 : num < 21 ? 3 : num < 23 ? 3.5 : num < 25 ? 4 : num < 27 ? 4.5 : num < 29 ? 5 : 5.5;
                 break;
             case "AIME":
                 range = [3.0, 6.5, 15];
+                //diff = num < 3 ? 3 : num < 6 ? 3.5 : num < 8 ? 4 : num < 10 ? 4.5 : num < 11 ? 5 : num < 13 ? 5.5 : num < 14 ? 6 : 6.5;
                 break;
             case "USAJMO":
                 diff = num === 1 || num === 4 ? 5.5 : num === 2 || num === 5 ? 6 : 7;
@@ -1257,7 +1262,7 @@ async function jsonp_fetch(src, options = {}) {
                 diff = -1;
                 break;
         }
-        return diff ? diff : range[0] + Math.floor(Math.floor((((range[1] - range[0]) / (range[2] - 2)) * (num - 1) * 100) / 5) * 5) / 100;
+        return !range ? diff : range[0] + Math.floor(Math.floor((((range[1] - range[0]) / (range[2] - 2)) * (num - 1) * 100) / 5) * 5) / 100;
     }
 
     // Sorts
