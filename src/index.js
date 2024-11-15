@@ -664,11 +664,11 @@ async function jsonp_fetch(src, options = {}) {
     }
 
     function defaultName() {
-        let now = new Date().toLocaleString("en-UK", {
+        const now = new Date().toLocaleString("en-UK", {
             year: "numeric",
             month: "short",
             day: "numeric"
-        })
+        });
         try {
             let inputDiff = $("#input-diff");
             const diffFrom = inputDiff.data().from;
