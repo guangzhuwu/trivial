@@ -462,24 +462,20 @@ async function jsonp_fetch(src, options = {}) {
             }
 
             inputProblemTitles = []
-            if (redirList.length) {
+            if (redirList.length > 0) {
                 inputProblemTitles = redirList;
             } else {
-                let randomList = []
-                while ((randomList.length + problems.length) < totalCount && pages && pages.length !== 0) {
+                while ((inputProblemTitles.length + problems.length) < totalCount && pages && pages.length !== 0) {
                     while (true) {
                         let pageIndex = Math.floor(Math.random() * pages.length);
-                        let randomPage = pages[pageIndex];
-                        pages.splice(pageIndex, 1);
+                        let randomPage = pages.splice(pageIndex, 1)[0];
                         if (!skipProblems || !skipProblems.includes(randomPage)) {
-                            randomList.push(randomPage);
+                            inputProblemTitles.push(randomPage);
                             break
                         }
                     }
                 }
-                inputProblemTitles = randomList
             }
-
             if (inputProblemTitles.length <= 0) {
                 break
             }
@@ -583,17 +579,18 @@ async function jsonp_fetch(src, options = {}) {
     }
 
     function defaultName() {
-        const now = new Date().toLocaleString("en-UK", {
+        const now = new Date().toLocaleString("en-US", {
             year: "numeric", month: "short", day: "numeric"
         });
         try {
+            let inputNumber = $("#input-number").data().from
             let inputDiff = $("#input-diff");
-            const diffFrom = inputDiff.data().from;
-            const diffTo = inputDiff.data().to;
+            const diffFrom = inputDiff.data().from.toFixed(2);
+            const diffTo = inputDiff.data().to.toFixed(2);
             const inputYears = $("#input-years");
             const yearFrom = inputYears.data().from;
             const yearTo = inputYears.data().to;
-            return `Problem Set (${diffFrom} - ${diffTo}) - (${yearFrom} - ${yearTo}) - ${now}`;
+            return `Problem Set ${inputNumber} - (${diffFrom} - ${diffTo}) - (${yearFrom} - ${yearTo}) - ${now}`;
         } catch (e) {
             return `Problem Set - ${now}`;
         }
@@ -1170,14 +1167,14 @@ async function jsonp_fetch(src, options = {}) {
         let problemNumber = computeNumber(problem);
         let problemDiff = computeDifficulty(problemTest, problemNumber, problemYear);
         return !(problemDiff < diffFrom || diffTo < problemDiff);
-
-
     }
 
     const validProblem = (problem) => problem.includes("Problems/Problem") && problem.match(/^\d{4}/) && problem.match(/\d+$/);
 
+    //1997_AJHSME_Problems/Problem_22
+    //2009 UNCO Math Contest II Problems/Problem 11
     const computeTest = (problem) => problem
-        .match(/(\d{4} )(.*)( Problems)/)[2]
+        .match(/(\d{4})[\s_](.+)[\s_](Problems)/)[2]
         .replace(/AMC (10|12)[AB]/, "AMC $1")
         .replace(/AIME I+/, "AIME")
         .replace(/AJHSME/, "AMC 8");
@@ -1190,23 +1187,23 @@ async function jsonp_fetch(src, options = {}) {
         switch (test) {
             case "AMC 8":
                 range = [0.25, 2.0, 25];
-                //diff = num < 4 ? 0.25 : num < 7 ? 0.5 : num < 10 ? 0.75 : num < 13 ? 1 : num < 17 ? 1.25 : num < 21 ? 1.5 : num < 24 ? 1.75 : 2;
+                diff = num < 4 ? 0.25 : num < 7 ? 0.5 : num < 10 ? 0.75 : num < 13 ? 1 : num < 17 ? 1.25 : num < 21 ? 1.5 : num < 24 ? 1.75 : 2;
                 break;
             case "AMC 10":
                 range = [1.0, 4.5, 25];
-                //diff = num < 4 ? 1 : num < 7 ? 1.5 : num < 10 ? 1.75 : num < 13 ? 2 : num < 15 ? 2.25 : num < 17 ? 2.5 : num < 19 ? 2.75 : num < 21 ? 3 : num < 23 ? 3.5 : num < 25 ? 4 : 4.5;
+                diff = num < 4 ? 1 : num < 7 ? 1.5 : num < 10 ? 1.75 : num < 13 ? 2 : num < 15 ? 2.25 : num < 17 ? 2.5 : num < 19 ? 2.75 : num < 21 ? 3 : num < 23 ? 3.5 : num < 25 ? 4 : 4.5;
                 break;
             case "AMC 12":
                 range = [1.25, 5.5, 25];
-                //diff = num < 4 ? 1.25 : num < 6 ? 1.5 : num < 9 ? 1.75 : num < 11 ? 2 : num < 14 ? 2.5 : num < 17 ? 3 : num < 19 ? 3.25 : num < 21 ? 3.5 : num < 23 ? 4 : num < 24 ? 4.5 : num < 25 ? 5 : 5.5;
+                diff = num < 4 ? 1.25 : num < 6 ? 1.5 : num < 9 ? 1.75 : num < 11 ? 2 : num < 14 ? 2.5 : num < 17 ? 3 : num < 19 ? 3.25 : num < 21 ? 3.5 : num < 23 ? 4 : num < 24 ? 4.5 : num < 25 ? 5 : 5.5;
                 break;
             case "AHSME":
                 range = [1.0, 5.5, 35];
-                //diff = num < 4 ? 1 : num < 7 ? 1.5 : num < 10 ? 1.75 : num < 13 ? 2 : num < 15 ? 2.25 : num < 17 ? 2.5 : num < 19 ? 2.75 : num < 21 ? 3 : num < 23 ? 3.5 : num < 25 ? 4 : num < 27 ? 4.5 : num < 29 ? 5 : 5.5;
+                diff = num < 4 ? 1 : num < 7 ? 1.5 : num < 10 ? 1.75 : num < 13 ? 2 : num < 15 ? 2.25 : num < 17 ? 2.5 : num < 19 ? 2.75 : num < 21 ? 3 : num < 23 ? 3.5 : num < 25 ? 4 : num < 27 ? 4.5 : num < 29 ? 5 : 5.5;
                 break;
             case "AIME":
                 range = [3.0, 6.5, 15];
-                //diff = num < 3 ? 3 : num < 6 ? 3.5 : num < 8 ? 4 : num < 10 ? 4.5 : num < 11 ? 5 : num < 13 ? 5.5 : num < 14 ? 6 : 6.5;
+                diff = num < 3 ? 3 : num < 6 ? 3.5 : num < 8 ? 4 : num < 10 ? 4.5 : num < 11 ? 5 : num < 13 ? 5.5 : num < 14 ? 6 : 6.5;
                 break;
             case "USAJMO":
                 diff = num === 1 || num === 4 ? 5.5 : num === 2 || num === 5 ? 6 : 7;
@@ -1253,9 +1250,11 @@ async function jsonp_fetch(src, options = {}) {
                 diff = num === 1 ? 3 : num === 2 ? 3.5 : num === 3 ? 4 : num === 4 ? 5 : num === 5 ? 6 : 6.5;
                 break;
             case "UNCO Math Contest II":
+                range = [1.0, 5.5, 11];
                 diff = num < 2 ? 1 : num < 3 ? 1.5 : num < 4 ? 2 : num < 5 ? 2.5 : num < 6 ? 3 : num < 7 ? 3.5 : num < 8 ? 4 : num < 9 ? 4.5 : num < 10 ? 5 : 5.5;
                 break;
             case "UNM-PNM Statewide High School Mathematics Contest II":
+                range = [2.0, 5.5, 11];
                 diff = num < 3 ? 2 : num < 4 ? 2.5 : num < 5 ? 3 : num < 6 ? 3.5 : num < 8 ? 4 : num < 9 ? 4.5 : num < 10 ? 5 : 5.5;
                 break;
             default:
