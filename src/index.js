@@ -68,6 +68,26 @@ async function jsonp_fetch(src, options = {}) {
 }
 
 (() => {
+    const title_keywords = ["AMC 8",
+        "AMC 10",
+        "AMC 12",
+        "AHSME",
+        "AIME",
+        "USAJMO",
+        "USAMO",
+        "IMO",
+        "Alabama ARML TST",
+        "APMO",
+        "BMO",
+        "Canadian MO",
+        "Indonesia MO",
+        "iTest",
+        "JBMO",
+        "Putnam",
+        "UMO",
+        "UNCO Math Contest II",
+        "UNM-PNM Statewide High School Mathematics Contest II",
+    ]
     let allPages = [];
     let allProblems = [];
     let maxYear = new Date().getFullYear();
@@ -1184,7 +1204,12 @@ async function jsonp_fetch(src, options = {}) {
     function computeDifficulty(test, num, year) {
         let diff = null;
         let range = null;
-        switch (test) {
+        let keywords;
+        for (keywords of title_keywords) {
+            if (test.indexOf(keywords) >= 0) break;
+            keywords = ''
+        }
+        switch (keywords) {
             case "AMC 8":
                 range = [0.25, 2.0, 25];
                 diff = num < 4 ? 0.25 : num < 7 ? 0.5 : num < 10 ? 0.75 : num < 13 ? 1 : num < 17 ? 1.25 : num < 21 ? 1.5 : num < 24 ? 1.75 : 2;
