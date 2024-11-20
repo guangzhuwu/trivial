@@ -525,8 +525,7 @@ tags > :is(tag, span) {
     border-radius: 0;
 }
 
-.irs--flat
-:is(.irs-bar, .irs-handle > i:first-child, .irs-from, .irs-single, .irs-to) {
+.irs--flat :is(.irs-bar, .irs-handle > i:first-child, .irs-from, .irs-single, .irs-to) {
     background: var(--input-accent-color);
 }
 
@@ -1153,8 +1152,7 @@ table.floatright {
 }
 
 table:first-child {
-    margin: auto;
-    margin-top: 1em;
+    margin: 1em auto auto;
 }
 
 .wikitable {
@@ -1265,7 +1263,7 @@ table:first-child {
 
 /* Element states */
 :is(a, .text-button, mjx-container):focus {
-    outline: 1.5px solid var(--placeholder-color);
+    outline: 2px solid var(--placeholder-color);
     outline-offset: 2px;
 }
 
@@ -1321,7 +1319,7 @@ footer {
 }
 
 .loading-bar {
-    width: 0%;
+    width: 0;
     height: 100%;
     background: var(--input-accent-color);
     border-radius: 0.2rem;

@@ -9,18 +9,19 @@ async function jsonp_fetch(src, options = {}) {
         jsonp_fetch.counter += 1;
     }
 
+    const prefix = 'jsonp_fetch_';
     return new Promise((resolve, reject) => {
-        const callbackName = `jsonp_${Date.now()}_${jsonp_fetch.counter}_${Math.random().toString(36).replace('.', '')}`;
+        const callbackName = `${prefix}${Date.now()}_${jsonp_fetch.counter}_${Math.random().toString(36).replace('.', '')}`;
         const url = `${src}${src.indexOf('?') === -1 ? '?' : '&'}callback=${callbackName}`; // Use template literal
         const script = document.createElement('script');
         const timeoutId = setTimeout(() => {
             script.onerror('Timeout!');
-        }, options.timeout || 100000);
+        }, options.timeout || 50000);
 
         script.src = url;
         script.async = true;
-        /*
-        script.onload = function (evt) {
+        script.id = callbackName;
+        script.onload = function () {
             console.log(callbackName + ': script onload');
             if (script.parentNode) {
                 script.parentNode.removeChild(script);
@@ -28,7 +29,6 @@ async function jsonp_fetch(src, options = {}) {
             window.clearTimeout(timeoutId);
             delete window[callbackName];
         }
-        */
         script.onerror = (evt) => {
             console.log(callbackName + ': Script error! ' + evt);
             if (script.parentNode) {
@@ -756,7 +756,7 @@ async function jsonp_fetch(src, options = {}) {
 
     async function fillBatch(pagenames, pushUrl, testYear, testName) {
         async function makeBatch() {
-            let problems = [];
+            let problems;
             let problemTitles = pagenames
                 .split("|")
                 .map((e) => e.replace(/_/g, " ").replace("#", "Problems/Problem "));
