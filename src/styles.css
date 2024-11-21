@@ -525,7 +525,8 @@ tags > :is(tag, span) {
     border-radius: 0;
 }
 
-.irs--flat :is(.irs-bar, .irs-handle > i:first-child, .irs-from, .irs-single, .irs-to) {
+.irs--flat
+:is(.irs-bar, .irs-handle > i:first-child, .irs-from, .irs-single, .irs-to) {
     background: var(--input-accent-color);
 }
 
@@ -1152,7 +1153,8 @@ table.floatright {
 }
 
 table:first-child {
-    margin: 1em auto auto;
+    margin: auto;
+    margin-top: 1em;
 }
 
 .wikitable {
@@ -1263,7 +1265,7 @@ table:first-child {
 
 /* Element states */
 :is(a, .text-button, mjx-container):focus {
-    outline: 2px solid var(--placeholder-color);
+    outline: 1.5px solid var(--placeholder-color);
     outline-offset: 2px;
 }
 
@@ -1319,7 +1321,7 @@ footer {
 }
 
 .loading-bar {
-    width: 0;
+    width: 0%;
     height: 100%;
     background: var(--input-accent-color);
     border-radius: 0.2rem;
@@ -1626,32 +1628,33 @@ footer {
     /* Font fixes */
     body,
     .article-text {
-        margin-right: -0.8em;
-        margin-left: -1.0rem;
+        margin-right: -1.5em;
+        margin-left: -1.5rem;
+        margin-top: -1.5rem;
         padding-top: -1.8rem;
         color: black;
-        font: 16.5pt / 1.15 "Latin Modern Sans", sans-serif;
+        font: 10pt / 1.15 "Latin Modern Sans", sans-serif;
         /*font-size: 16pt;*/
     }
 
     .article-text h1 {
         padding-top: 1.5rem;
-        font-size: 16pt;
+        font-size: 12pt;
         line-height: 1.1rem;
     }
 
     .article-text h2 {
-        padding-top: 1.8rem;
+        padding-top: 1.5rem;
         color: #5da5e4;
-        font-size: 15pt;
-    }
-
-    .article-text h3 {
         font-size: 12pt;
     }
 
+    .article-text h3 {
+        font-size: 11.5pt;
+    }
+
     img.latex {
-        transform: scale(0.8);
+        transform: scale(0.7);
     }
 
     /**/
@@ -1660,12 +1663,18 @@ footer {
         margin: 0 0 1rem -1.8rem;
         padding: 0;
         color: inherit;
-        font: 2rem "Latin Modern Sans Demi-Condensed", sans-serif;
+        font: 1.5rem "Latin Modern Sans Demi-Condensed", sans-serif;
         text-shadow: none;
         background: none;
     }
 
-    .page-container,
+    .page-container {
+        box-shadow: none;
+        width: 100%;
+        position: relative;
+        min-width: 20vh;
+    }
+
     .problem-section {
         box-shadow: none;
     }

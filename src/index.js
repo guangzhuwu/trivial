@@ -68,26 +68,7 @@ async function jsonp_fetch(src, options = {}) {
 }
 
 (() => {
-    const title_keywords = ["AMC 8",
-        "AMC 10",
-        "AMC 12",
-        "AHSME",
-        "AIME",
-        "USAJMO",
-        "USAMO",
-        "IMO",
-        "Alabama ARML TST",
-        "APMO",
-        "BMO",
-        "Canadian MO",
-        "Indonesia MO",
-        "iTest",
-        "JBMO",
-        "Putnam",
-        "UMO",
-        "UNCO Math Contest II",
-        "UNM-PNM Statewide High School Mathematics Contest II",
-    ]
+    const title_keywords = ["AMC 8", "AMC 10", "AMC 12", "AHSME", "AIME", "USAJMO", "USAMO", "IMO", "Alabama ARML TST", "APMO", "BMO", "Canadian MO", "Indonesia MO", "iTest", "JBMO", "Putnam", "UMO", "UNCO Math Contest II", "UNM-PNM Statewide High School Mathematics Contest II",]
     let allPages = [];
     let allProblems = [];
     let maxYear = new Date().getFullYear();
@@ -417,6 +398,7 @@ async function jsonp_fetch(src, options = {}) {
     async function fetchProblems(totalCount, inputProblemTitles, skipProblems = null, pages = null) {
         let problems = [];
         let redirIndex = {};
+        let problemsSet = new Set()
 
         let counter = 0;
 
@@ -453,18 +435,24 @@ async function jsonp_fetch(src, options = {}) {
                 let problemSolutions = getSolutions(problemText);
 
                 if (problemProblem && problemSolutions) {
-                    if (redirIndex[currentProblem]) problems.splice(redirIndex[currentProblem], 0, {
-                        title: currentProblem,
-                        difficulty: computeDifficulty(computeTest(currentProblem), computeNumber(currentProblem), computeYear(currentProblem)),
-                        problem: problemProblem,
-                        solutions: problemSolutions,
-                    }); else problems.push({
-                        title: currentProblem,
-                        difficulty: computeDifficulty(computeTest(currentProblem), computeNumber(currentProblem), computeYear(currentProblem)),
-                        problem: problemProblem,
-                        solutions: problemSolutions,
-                    });
-
+                    if (!problemsSet.has(currentProblem)) {
+                        problemsSet.add(currentProblem);
+                        if (redirIndex[currentProblem]) {
+                            problems.splice(redirIndex[currentProblem], 0, {
+                                title: currentProblem,
+                                difficulty: computeDifficulty(computeTest(currentProblem), computeNumber(currentProblem), computeYear(currentProblem)),
+                                problem: problemProblem,
+                                solutions: problemSolutions,
+                            });
+                        } else {
+                            problems.push({
+                                title: currentProblem,
+                                difficulty: computeDifficulty(computeTest(currentProblem), computeNumber(currentProblem), computeYear(currentProblem)),
+                                problem: problemProblem,
+                                solutions: problemSolutions,
+                            });
+                        }
+                    }
                 } else if (problemText.includes("Redirect to:")) {
                     console.log("Redirect problem, going there instead...");
                     let redirHref = $($.parseHTML(problemText))
@@ -488,9 +476,9 @@ async function jsonp_fetch(src, options = {}) {
                 while ((inputProblemTitles.length + problems.length) < totalCount && pages && pages.length !== 0) {
                     while (true) {
                         let pageIndex = Math.floor(Math.random() * pages.length);
-                        let randomPage = pages.splice(pageIndex, 1)[0];
-                        if (!skipProblems || !skipProblems.includes(randomPage)) {
-                            inputProblemTitles.push(randomPage);
+                        let randomProblem = pages.splice(pageIndex, 1)[0];
+                        if (!skipProblems || !skipProblems.includes(randomProblem)) {
+                            inputProblemTitles.push(randomProblem);
                             break
                         }
                     }
