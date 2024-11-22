@@ -13,7 +13,7 @@
     --hr-color: hsl(0 0% 67%);
     --body-background: fixed url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1NiIgaGVpZ2h0PSIxMDAiPgo8cGF0aCBkPSJNMjggNjZMMCA1MEwwIDE2TDI4IDBMNTYgMTZMNTYgNTBMMjggNjZMMjggMTAwIiBmaWxsPSJub25lIiBzdHJva2U9IiNlZmVmZWYiIHN0cm9rZS13aWR0aD0iMiI+PC9wYXRoPgo8cGF0aCBkPSJNMjggMEwyOCAzNEwwIDUwTDAgODRMMjggMTAwTDU2IDg0TDU2IDUwTDI4IDM0IiBmaWxsPSJub25lIiBzdHJva2U9IiNlZmVmZWYiIHN0cm9rZS13aWR0aD0iMiI+PC9wYXRoPgo8L3N2Zz4="),
     linear-gradient(hsl(0 0% 95%), hsl(0 0% 95%));
-    --page-container-color: hsl(0 0% 99%);
+    --page-container-color: hsl(0 0% 100%);
     --page-container-box-shadow: 0 5px 20px hsl(217 100% 5% / 20%);
     --item-color: hsl(0 0% 99.5%);
     --item-disabled-color: hsl(0 0% 97%);
@@ -1628,12 +1628,10 @@ footer {
     /* Font fixes */
     body,
     .article-text {
-        margin-right: -1.5em;
-        margin-left: -1.5rem;
-        margin-top: -1.5rem;
-        padding-top: -1.8rem;
+        margin-top: -1.0rem;
+        padding-top: -1.5rem;
         color: black;
-        font: 10pt / 1.15 "Latin Modern Sans", sans-serif;
+        font: 10.5pt / 1.15 "Latin Modern Sans", sans-serif;
         /*font-size: 16pt;*/
     }
 
@@ -1650,7 +1648,7 @@ footer {
     }
 
     .article-text h3 {
-        font-size: 11.5pt;
+        font-size: 10.5pt;
     }
 
     img.latex {
@@ -1660,7 +1658,7 @@ footer {
     /**/
     /* Prettier */
     .section-header {
-        margin: 0 0 1rem -1.8rem;
+        margin: 0 0 1rem 0;
         padding: 0;
         color: inherit;
         font: 1.5rem "Latin Modern Sans Demi-Condensed", sans-serif;
@@ -1669,8 +1667,9 @@ footer {
     }
 
     .page-container {
+        padding: 0 10px;
         box-shadow: none;
-        width: 100%;
+        width: 105%;
         position: relative;
         min-width: 20vh;
     }

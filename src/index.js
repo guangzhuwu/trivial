@@ -929,7 +929,6 @@ async function jsonp_fetch(src, options = {}) {
                 ?.find("ol li")
                 ?.eq(problemNum - 1)
                 ?.text();
-
             if (clickedTimes === clickedTimesThen) {
                 if (answer) {
                     if (!$("#batchans-section").length) $("#solutions-section").before(`<div class="problem-section" id="batchans-section">
@@ -1509,7 +1508,8 @@ async function jsonp_fetch(src, options = {}) {
                   ${notes}`);
         updateYear();
         collapseText();
-        directLinks();
+        directLinks().then(r => {
+        });
 
         $("#input-singletest").tagify({
             mode: "select", originalInputValueFormat: (values) => values.map((e) => e.value), dropdown: {
@@ -1539,7 +1539,8 @@ async function jsonp_fetch(src, options = {}) {
         $("#random-input").after($(".practice-progress"));
         renderChart();
         collapseText();
-        directLinks();
+        directLinks().then(r => {
+        });
 
         $("#input-subjects").tagify({
             whitelist: whitelist, originalInputValueFormat: (values) => values.map((e) => e.value), dropdown: {
@@ -1716,7 +1717,8 @@ async function jsonp_fetch(src, options = {}) {
         if (optionsUncollapsed) $(".options-container").removeClass("text-collapsed");
         updateYear();
         collapseText();
-        directLinks();
+        directLinks().then(r => {
+        });
         nameLive();
         breakLive();
         hideToggle();
@@ -1755,7 +1757,8 @@ async function jsonp_fetch(src, options = {}) {
                   ${notes}`);
         if (optionsUncollapsed) $(".options-container").removeClass("text-collapsed");
         collapseText();
-        directLinks();
+        directLinks().then(r => {
+        });
         nameLive();
         breakLive();
         hideToggle();
@@ -1802,7 +1805,8 @@ async function jsonp_fetch(src, options = {}) {
             .map((e) => titleCleanup(e))
             .toString()}">`);
         collapseText();
-        directLinks();
+        directLinks().then(r => {
+        });
         nameLive();
         breakLive();
         hideToggle();
@@ -1868,7 +1872,8 @@ async function jsonp_fetch(src, options = {}) {
                   </div>
                   ${notes}`);
         collapseText();
-        directLinks();
+        directLinks().then(r => {
+        });
 
         $("#input-search").tagify({
             mode: "select", originalInputValueFormat: (values) => values.map((e) => e.value), dropdown: {
@@ -2170,6 +2175,10 @@ async function jsonp_fetch(src, options = {}) {
             hideLinks();
             breakSets();
             await addBatchAnswers(problems.map((e) => e.title));
+            if (problems.length > 50) {
+                $("#solutions-header").trigger("click");
+                $("#batchans-header").trigger("click");
+            }
         }
     });
 
@@ -2629,6 +2638,7 @@ async function jsonp_fetch(src, options = {}) {
                             ?.find("ol li")
                             ?.eq(problemNum - 1)
                             ?.text();
+                        answer = problemNum > 50 ? false : answer;
                         console.log(answer);
                         if (answer) {
                             if (!$("#batchans-section").length) $("#solutions-section").before(`<div class="problem-section" id="batchans-section">

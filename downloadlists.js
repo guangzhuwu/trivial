@@ -9,7 +9,7 @@ import fs from "fs";
 
     let computeTest = (problem) => problem
         .match(/(\d{4}[_\s])(.*)([\s_][Pp]roblems)/)[2]
-        .replace(/AMC (10|12)[AB]/, "AMC $1")
+        .replace(/AMC (10|12)[A-Z]/, "AMC $1")
         .replace(/AIME I+/, "AIME")
         .replace(/AJHSME/, "AMC 8");
     let computeYear = (problem) => problem.match(/^\d{4}/)[0];
