@@ -502,7 +502,7 @@ async function jsonp_fetch(src, options = {}) {
                       View on the AoPS Wiki
                     </a> ⋅ <button class="text-button section-button" tabindex="0"
                     onclick="window.print()">
-                      Print this page
+                      <p id="print-button">Print this page</p>
                     </button>
                   </div>
                   <div class="article-text" id="problem-text"></div>
@@ -2175,9 +2175,20 @@ async function jsonp_fetch(src, options = {}) {
             hideLinks();
             breakSets();
             await addBatchAnswers(problems.map((e) => e.title));
-            if (problems.length > 50) {
+            if (problems.length > 25) {
                 $("#solutions-header").trigger("click");
                 $("#batchans-header").trigger("click");
+                let imgs = document.querySelectorAll('img'); //获取img元素
+                let intervalID = setInterval(() => {
+                    let completedCnt = 0;
+                    imgs.forEach((img) => {
+                        if (img.complete) ++completedCnt;
+                    });
+                    if (imgs.length === completedCnt) {
+                        clearInterval(intervalID);
+                        window.alert("READY!")
+                    }
+                }, 200);
             }
         }
     });
