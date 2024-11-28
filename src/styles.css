@@ -1631,28 +1631,33 @@ footer {
         margin-top: -1.0rem;
         padding-top: -1.5rem;
         color: black;
-        font: 10.5pt / 1.15 "Latin Modern Sans", sans-serif;
-        /*font-size: 16pt;*/
+        font: 10pt / 1.15 "Latin Modern Sans", sans-serif !important;
     }
 
     .article-text h1 {
         padding-top: 1.5rem;
-        font-size: 12pt;
+        font-size: 13pt !important;
         line-height: 1.1rem;
     }
 
     .article-text h2 {
         padding-top: 1.5rem;
         color: #5da5e4;
-        font-size: 12pt;
+        font-size: 12pt !important;
     }
 
-    .article-text h3 {
-        font-size: 10.5pt;
+    .article-text h3, h4, h5 {
+        font-size: 10pt !important;
     }
 
     img.latex {
         transform: scale(0.7);
+    }
+
+    img, img.latex {
+        max-height: 200px;
+        width: auto;
+        image-rendering: pixelated;
     }
 
     /**/
@@ -1667,11 +1672,10 @@ footer {
     }
 
     .page-container {
-        padding: 0 10px;
+        padding: 0 5px;
         box-shadow: none;
         width: 105%;
         position: relative;
-        min-width: 20vh;
     }
 
     .problem-section {
