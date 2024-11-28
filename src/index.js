@@ -1,7 +1,6 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
-
 async function jsonp_fetch(src, options = {}) {
     if (typeof jsonp_fetch.counter === 'undefined') {
         jsonp_fetch.counter = 0;
@@ -500,9 +499,9 @@ async function jsonp_fetch(src, options = {}) {
                   <div class="section-options">
                     <a href="" class="aops-link">
                       View on the AoPS Wiki
-                    </a> ⋅ <button class="text-button section-button" tabindex="0"
+                    </a> ⋅ <button id="print-button" class="text-button section-button" tabindex="0"
                     onclick="window.print()">
-                      <p id="print-button">Print this page</p>
+                      <p>Print this page</p>
                     </button>
                   </div>
                   <div class="article-text" id="problem-text"></div>
@@ -1164,7 +1163,7 @@ async function jsonp_fetch(src, options = {}) {
         let problemTest = computeTest(problem);
 
         if (tests.includes("(AMC Tests)")) {
-            tests.splice(tests.indexOf("(AMC Tests)"), 1, "AHSME", "AMC 8", "AMC 10", "AMC 12", "AIME", "USAMO", "IMO");
+            tests.splice(tests.indexOf("(AMC Tests)"), 1, "AHSME", "AMC 8", "AMC 10", "AMC 12");
         }
         if (!tests.includes("(All Tests)") && !tests.includes(problemTest)) return false;
 
@@ -2163,7 +2162,7 @@ async function jsonp_fetch(src, options = {}) {
         lastParam = searchParams.get("problems");
 
         if (clickedTimes === clickedTimesThen) {
-            $(".loading-notice").remove();
+            //$(".loading-notice").remove();
             katexFallback();
             await replaceProblems(problems);
             customText();
@@ -2176,19 +2175,24 @@ async function jsonp_fetch(src, options = {}) {
             breakSets();
             await addBatchAnswers(problems.map((e) => e.title));
             if (problems.length > 25) {
-                $("#solutions-header").trigger("click");
                 $("#batchans-header").trigger("click");
-                let imgs = document.querySelectorAll('img'); //获取img元素
+                $("#solutions-header").trigger("click");
+                let imgs = document.querySelectorAll('img');
                 let intervalID = setInterval(() => {
-                    let completedCnt = 0;
+                    let allLoaded = true;
                     imgs.forEach((img) => {
-                        if (img.complete) ++completedCnt;
+                        if (!img.complete) {
+                            allLoaded = false;
+                            return;
+                        }
                     });
-                    if (imgs.length === completedCnt) {
+                    if (allLoaded) {
                         clearInterval(intervalID);
-                        window.alert("READY!")
+                        $(".loading-notice").remove();
                     }
-                }, 200);
+                }, 500);
+            } else {
+                $(".loading-notice").remove();
             }
         }
     });
@@ -2841,14 +2845,17 @@ async function jsonp_fetch(src, options = {}) {
         if (JSON.parse(localStorage.getItem("justifyText"))) $(".article-text").addClass("justify-text");
     }
 
-    function changeName() {
-        let name = $("#input-name").val();
+    function changeName(name) {
+        let input_name = $("#input-name").val();
         if (name) {
+            document.title = name;
+        } else if (input_name) {
             $("#batch-header").html(sanitize(name));
             document.title = sanitize(name) + " - Trivial Math Practice";
         } else {
             document.title = defaultName();
         }
+        return document.title;
     }
 
     function nameLive() {
@@ -3181,7 +3188,8 @@ async function jsonp_fetch(src, options = {}) {
             $("#main-button-container").after(`${notes}`);
             collapseText();
 
-            if (validProblem(lastParam)) await addProblem(lastParam, true); else await addArticle(lastParam, true);
+            if (validProblem(lastParam)) await addProblem(lastParam, true);
+            else await addArticle(lastParam, true);
         } else if (searchParams.get("problems")) {
             $("#main-button-container").after(`${notes}`);
             addUrlBatch();

@@ -192,7 +192,10 @@
         rel="preload"
 />
 <link href="src/fonts.css" rel="stylesheet"/>
-<link href="src/styles.css" id="stylesheet-link" rel="stylesheet"/>
+<script>document.write('<link id="stylesheet-link" rel="stylesheet" href="src/styles.css?version=' + new Date().getTime() + '"><\/>')</script>
+<!--
+<link href="src/styles.css?version=01234" id="stylesheet-link" rel="stylesheet"/>
+-->
 <script>
     if (
         JSON.parse(localStorage.getItem("darkTheme")) ||
@@ -202,7 +205,7 @@
         let darkStyles = document.createElement("link");
         let styles = document.querySelector("#stylesheet-link");
         darkStyles.id = "dark-stylesheet-link";
-        darkStyles.href = "src/dark.css";
+        darkStyles.href = "src/dark.css?version=" + new Date().getTime();
         darkStyles.rel = "stylesheet";
         styles.after(darkStyles);
     }
