@@ -2178,19 +2178,26 @@ async function jsonp_fetch(src, options = {}) {
                 $("#batchans-header").trigger("click");
                 $("#solutions-header").trigger("click");
                 let imgs = document.querySelectorAll('img');
-                let intervalID = setInterval(() => {
-                    let allLoaded = true;
-                    imgs.forEach((img) => {
-                        if (!img.complete) {
-                            allLoaded = false;
-                            return;
+                const imgLength = imgs.length;
+                let intervalID;
+                const imgArray = Array.from(imgs);
+                const currentWidth = parseFloat($(".loading-bar").css("width"))
+                const parentWidth = $(".loading-bar").parent().width();
+                const origWidth = Math.floor(currentWidth / parentWidth * 100);
+                intervalID = setInterval(() => {
+                    for (let i = imgArray.length - 1; i >= 0; i--) {
+                        if (imgArray[i].complete) {
+                            imgArray.splice(i, 1);
                         }
-                    });
-                    if (allLoaded) {
+                    }
+                    const progress = origWidth + (1 - imgArray.length / imgLength) * (100 - origWidth);
+                    $(".loading-bar").css("width", `${progress}%`);
+                    if (imgArray.length === 0) {
                         clearInterval(intervalID);
                         $(".loading-notice").remove();
                     }
                 }, 500);
+
             } else {
                 $(".loading-notice").remove();
             }

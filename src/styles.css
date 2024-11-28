@@ -1631,7 +1631,7 @@ footer {
         margin-top: -1.0rem;
         padding-top: -1.5rem;
         color: black;
-        font: 10pt / 1.15 "Latin Modern Sans", sans-serif !important;
+        font: 11pt / 1.15 "Latin Modern Sans", sans-serif !important;
     }
 
     .article-text h1 {
@@ -1647,7 +1647,7 @@ footer {
     }
 
     .article-text h3, h4, h5 {
-        font-size: 10pt !important;
+        font-size: 11pt !important;
     }
 
     img.latex {
