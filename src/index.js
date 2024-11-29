@@ -1,7 +1,7 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
-async function jsonp_fetch(src, options = {}) {
+async function jsonp_fetch_once(src, options = {}) {
     if (typeof jsonp_fetch.counter === 'undefined') {
         jsonp_fetch.counter = 0;
     } else {
@@ -15,7 +15,7 @@ async function jsonp_fetch(src, options = {}) {
         const script = document.createElement('script');
         const timeoutId = setTimeout(() => {
             script.onerror('Timeout!');
-        }, options.timeout || 50000);
+        }, options.timeout || 20000);
 
         script.src = url;
         script.async = true;
@@ -66,8 +66,18 @@ async function jsonp_fetch(src, options = {}) {
     });
 }
 
+async function jsonp_fetch(src, options = {}) {
+    let promise;
+    for (let i = 0; i < 3; ++i) {
+        promise = await jsonp_fetch_once(src, options);
+        if (promise?.status < 300)
+            return promise;
+    }
+    return promise;
+}
+
 (() => {
-    const title_keywords = ["AMC 8", "AMC 10", "AMC 12", "AHSME", "AIME", "USAJMO", "USAMO", "IMO", "Alabama ARML TST", "APMO", "BMO", "Canadian MO", "Indonesia MO", "iTest", "JBMO", "Putnam", "UMO", "UNCO Math Contest II", "UNM-PNM Statewide High School Mathematics Contest II",]
+    const title_keywords = ["AMC 8", "AMC 10", "AMC 12", "AHSME", "AIME", "USAJMO", "USAMO", "IMO", "Alabama ARML TST", "APMO", "BMO", "Canadian MO", "Indonesia MO", "iTest", "JBMO", "Putnam", "UMO", "UNCO Math Contest II", "UNM-PNM Statewide High School Mathematics Contest II", "<END>"]
     let allPages = [];
     let allProblems = [];
     let maxYear = new Date().getFullYear();
@@ -402,10 +412,9 @@ async function jsonp_fetch(src, options = {}) {
         let counter = 0;
 
         function progress() {
-            counter += 1
-            $(".loading-bar").css("width", `${(problems.length ? problems.length : counter) / totalCount * 90}%`);
+            if (counter < totalCount) counter += 1
+            $(".loading-bar").css("width", `${Math.max(problems.length, counter) / totalCount * 80}%`);
         }
-
 
         const apiEndpoint = "https://artofproblemsolving.com/wiki/api.php";
         while (problems.length < totalCount) {
@@ -781,7 +790,6 @@ async function jsonp_fetch(src, options = {}) {
                 lastParam = searchParams.get("problems");
             }
 
-            $(".loading-notice").remove();
             katexFallback();
             customText();
             changeName();
@@ -800,6 +808,7 @@ async function jsonp_fetch(src, options = {}) {
             await addBatchAnswers(pagenames
                 .split("|")
                 .map((e) => e.replace(/_/g, " ").replace("#", "Problems/Problem ")), testName, testYear);
+            $(".loading-notice").remove();
         }
     }
 
@@ -1192,29 +1201,30 @@ async function jsonp_fetch(src, options = {}) {
         let range = null;
         let keywords;
         for (keywords of title_keywords) {
-            if (test.indexOf(keywords) >= 0) break;
-            keywords = ''
+            if (test.indexOf(keywords) >= 0) {
+                break;
+            }
         }
         switch (keywords) {
             case "AMC 8":
                 range = [0.25, 2.0, 25];
-                diff = num < 4 ? 0.25 : num < 7 ? 0.5 : num < 10 ? 0.75 : num < 13 ? 1 : num < 17 ? 1.25 : num < 21 ? 1.5 : num < 24 ? 1.75 : 2;
+                //diff = num < 4 ? 0.25 : num < 7 ? 0.5 : num < 10 ? 0.75 : num < 13 ? 1 : num < 17 ? 1.25 : num < 21 ? 1.5 : num < 24 ? 1.75 : 2;
                 break;
             case "AMC 10":
                 range = [1.0, 4.5, 25];
-                diff = num < 4 ? 1 : num < 7 ? 1.5 : num < 10 ? 1.75 : num < 13 ? 2 : num < 15 ? 2.25 : num < 17 ? 2.5 : num < 19 ? 2.75 : num < 21 ? 3 : num < 23 ? 3.5 : num < 25 ? 4 : 4.5;
+                //diff = num < 4 ? 1 : num < 7 ? 1.5 : num < 10 ? 1.75 : num < 13 ? 2 : num < 15 ? 2.25 : num < 17 ? 2.5 : num < 19 ? 2.75 : num < 21 ? 3 : num < 23 ? 3.5 : num < 25 ? 4 : 4.5;
                 break;
             case "AMC 12":
                 range = [1.25, 5.5, 25];
-                diff = num < 4 ? 1.25 : num < 6 ? 1.5 : num < 9 ? 1.75 : num < 11 ? 2 : num < 14 ? 2.5 : num < 17 ? 3 : num < 19 ? 3.25 : num < 21 ? 3.5 : num < 23 ? 4 : num < 24 ? 4.5 : num < 25 ? 5 : 5.5;
+                //diff = num < 4 ? 1.25 : num < 6 ? 1.5 : num < 9 ? 1.75 : num < 11 ? 2 : num < 14 ? 2.5 : num < 17 ? 3 : num < 19 ? 3.25 : num < 21 ? 3.5 : num < 23 ? 4 : num < 24 ? 4.5 : num < 25 ? 5 : 5.5;
                 break;
             case "AHSME":
                 range = [1.0, 5.5, 35];
-                diff = num < 4 ? 1 : num < 7 ? 1.5 : num < 10 ? 1.75 : num < 13 ? 2 : num < 15 ? 2.25 : num < 17 ? 2.5 : num < 19 ? 2.75 : num < 21 ? 3 : num < 23 ? 3.5 : num < 25 ? 4 : num < 27 ? 4.5 : num < 29 ? 5 : 5.5;
+                //diff = num < 4 ? 1 : num < 7 ? 1.5 : num < 10 ? 1.75 : num < 13 ? 2 : num < 15 ? 2.25 : num < 17 ? 2.5 : num < 19 ? 2.75 : num < 21 ? 3 : num < 23 ? 3.5 : num < 25 ? 4 : num < 27 ? 4.5 : num < 29 ? 5 : 5.5;
                 break;
             case "AIME":
                 range = [3.0, 6.5, 15];
-                diff = num < 3 ? 3 : num < 6 ? 3.5 : num < 8 ? 4 : num < 10 ? 4.5 : num < 11 ? 5 : num < 13 ? 5.5 : num < 14 ? 6 : 6.5;
+                //diff = num < 3 ? 3 : num < 6 ? 3.5 : num < 8 ? 4 : num < 10 ? 4.5 : num < 11 ? 5 : num < 13 ? 5.5 : num < 14 ? 6 : 6.5;
                 break;
             case "USAJMO":
                 diff = num === 1 || num === 4 ? 5.5 : num === 2 || num === 5 ? 6 : 7;
@@ -1262,11 +1272,11 @@ async function jsonp_fetch(src, options = {}) {
                 break;
             case "UNCO Math Contest II":
                 range = [1.0, 5.5, 11];
-                diff = num < 2 ? 1 : num < 3 ? 1.5 : num < 4 ? 2 : num < 5 ? 2.5 : num < 6 ? 3 : num < 7 ? 3.5 : num < 8 ? 4 : num < 9 ? 4.5 : num < 10 ? 5 : 5.5;
+                //diff = num < 2 ? 1 : num < 3 ? 1.5 : num < 4 ? 2 : num < 5 ? 2.5 : num < 6 ? 3 : num < 7 ? 3.5 : num < 8 ? 4 : num < 9 ? 4.5 : num < 10 ? 5 : 5.5;
                 break;
             case "UNM-PNM Statewide High School Mathematics Contest II":
                 range = [2.0, 5.5, 11];
-                diff = num < 3 ? 2 : num < 4 ? 2.5 : num < 5 ? 3 : num < 6 ? 3.5 : num < 8 ? 4 : num < 9 ? 4.5 : num < 10 ? 5 : 5.5;
+                //diff = num < 3 ? 2 : num < 4 ? 2.5 : num < 5 ? 3 : num < 6 ? 3.5 : num < 8 ? 4 : num < 9 ? 4.5 : num < 10 ? 5 : 5.5;
                 break;
             default:
                 diff = -1;
@@ -1682,7 +1692,7 @@ async function jsonp_fetch(src, options = {}) {
     });
 
     $(".page-container").on("click", "#batch-nav", () => {
-        let optionsUncollapsed;
+        let optionsUncollapsed = false;
         if ($(".options-container").length && !$(".options-container").hasClass("text-collapsed")) optionsUncollapsed = true;
 
         clearOptions();
@@ -2007,7 +2017,6 @@ async function jsonp_fetch(src, options = {}) {
             let problems = await makeBatch(fullTest);
 
             if (clickedTimes === clickedTimesThen) {
-                $(".loading-notice").remove();
                 katexFallback();
                 customText();
                 let name = $("#input-name").val() ? sanitize($("#input-name").val()) : sanitize(`${$("#input-singleyear").val()} ${fullTest}`);
@@ -2030,6 +2039,7 @@ async function jsonp_fetch(src, options = {}) {
                 hideLinks();
                 breakSets();
                 await addBatchAnswers(problems.map((e) => e.title), fullTest, $("#input-singleyear").val());
+                $(".loading-notice").remove();
             }
         }
     });
@@ -2089,7 +2099,6 @@ async function jsonp_fetch(src, options = {}) {
             searchParams = new URLSearchParams(location.search);
             lastParam = searchParams.get("problems");
 
-            $(".loading-notice").remove();
             katexFallback();
             customText();
             changeName();
@@ -2100,7 +2109,7 @@ async function jsonp_fetch(src, options = {}) {
             hideLinks();
             breakSets();
             await addBatchAnswers(problems.map((e) => e.title));
-
+            $(".loading-notice").remove();
         }
     });
 
@@ -2162,7 +2171,6 @@ async function jsonp_fetch(src, options = {}) {
         lastParam = searchParams.get("problems");
 
         if (clickedTimes === clickedTimesThen) {
-            //$(".loading-notice").remove();
             katexFallback();
             await replaceProblems(problems);
             customText();
@@ -2177,14 +2185,13 @@ async function jsonp_fetch(src, options = {}) {
             if (problems.length > 25) {
                 $("#batchans-header").trigger("click");
                 $("#solutions-header").trigger("click");
-                let imgs = document.querySelectorAll('img');
+                const imgs = document.querySelectorAll('img');
                 const imgLength = imgs.length;
-                let intervalID;
                 const imgArray = Array.from(imgs);
                 const currentWidth = parseFloat($(".loading-bar").css("width"))
                 const parentWidth = $(".loading-bar").parent().width();
                 const origWidth = Math.floor(currentWidth / parentWidth * 100);
-                intervalID = setInterval(() => {
+                const intervalID = setInterval(() => {
                     for (let i = imgArray.length - 1; i >= 0; i--) {
                         if (imgArray[i].complete) {
                             imgArray.splice(i, 1);
@@ -2197,7 +2204,6 @@ async function jsonp_fetch(src, options = {}) {
                         $(".loading-notice").remove();
                     }
                 }, 500);
-
             } else {
                 $(".loading-notice").remove();
             }
