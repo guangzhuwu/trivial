@@ -1646,10 +1646,6 @@ footer {
         font-size: 12pt !important;
     }
 
-    .article-text h3, h4, h5 {
-        font-size: 11pt !important;
-    }
-
     img.latex {
         transform: scale(0.7);
     }

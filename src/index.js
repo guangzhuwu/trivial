@@ -1,83 +1,84 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
-async function jsonp_fetch_once(src, options = {}) {
-    if (typeof jsonp_fetch.counter === 'undefined') {
-        jsonp_fetch.counter = 0;
-    } else {
-        jsonp_fetch.counter += 1;
-    }
 
-    const prefix = 'jsonp_fetch_';
-    return new Promise((resolve, reject) => {
-        const callbackName = `${prefix}${Date.now()}_${jsonp_fetch.counter}_${Math.random().toString(36).replace('.', '')}`;
-        const url = `${src}${src.indexOf('?') === -1 ? '?' : '&'}callback=${callbackName}`; // Use template literal
+async function jsonpFetchOnce(src, options = {}) {
+    jsonpFetchOnce.counter = (jsonpFetchOnce.counter || 0) + 1;
+    const prefix = 'jsonpFetch_';
+
+    return new Promise((resolve, _) => {
+        const callbackName = `${prefix}${Date.now()}_${jsonpFetchOnce.counter}_${Math.random().toString(36).replace('.', '')}`;
+        const url = new URL(src);
+        url.searchParams.append('callback', callbackName);
+
         const script = document.createElement('script');
         const timeoutId = setTimeout(() => {
             script.onerror('Timeout!');
         }, options.timeout || 20000);
 
-        script.src = url;
+        script.src = url.toString();
         script.async = true;
         script.id = callbackName;
-        script.onload = function () {
-            console.log(callbackName + ': script onload');
-            if (script.parentNode) {
-                script.parentNode.removeChild(script);
-            }
-            window.clearTimeout(timeoutId);
-            delete window[callbackName];
-        }
-        script.onerror = (evt) => {
-            console.log(callbackName + ': Script error! ' + evt);
-            if (script.parentNode) {
-                script.parentNode.removeChild(script);
-            }
-            window.clearTimeout(timeoutId);
 
-            const response = new Response(JSON.stringify(''), {
-                status: 408, statusText: "Script load failed",
-            });
-            resolve(response);
-            if (options.onError) {
-                const error = new Error('Script error!');
-                options.onError(error); // Pass the error object
-            }
+        script.onload = () => {
+            script.parentNode?.removeChild(script);
+            clearTimeout(timeoutId);
+            delete window[callbackName];
         };
 
+        script.onerror = (evt) => {
+            script.parentNode?.removeChild(script);
+            clearTimeout(timeoutId);
+            const response = new Response(JSON.stringify(''), {status: 408, statusText: "Script load failed"});
+            resolve(response);
+            options.onError?.(new Error('Script error!'));
+        };
 
         window[callbackName] = (data) => {
-            //console.log(callbackName + ': window callbackName');
-            if (script.parentNode) {
-                script.parentNode.removeChild(script);
-            }
-            window.clearTimeout(timeoutId);
+            script.parentNode?.removeChild(script);
+            clearTimeout(timeoutId);
             delete window[callbackName];
             const response = new Response(JSON.stringify(data), {
-                status: data.status, statusText: data.statusText, headers: data.headers,
+                status: data.status,
+                statusText: data.statusText,
+                headers: data.headers,
             });
             resolve(response);
-            if (options.onSuccess) {
-                options.onSuccess(data); // Pass the data
-            }
+            options.onSuccess?.(data);
         };
 
         document.head.appendChild(script);
     });
 }
 
-async function jsonp_fetch(src, options = {}) {
+
+async function jsonpFetch(src, options = {}) {
+    if (null === options) options = {}
+    if (!options.timeout) options.timeout = 20000;
     let promise;
     for (let i = 0; i < 3; ++i) {
-        promise = await jsonp_fetch_once(src, options);
-        if (promise?.status < 300)
-            return promise;
+        promise = await jsonpFetchOnce(src, options);
+        if (promise?.status !== 408) return promise;
     }
     return promise;
 }
 
+function cleanupJsonpFetch(callbackNamePrefix = 'jsonpFetch_') {
+    for (const script of document.scripts) {
+        if (script.id && script.id.startsWith(callbackNamePrefix)) {
+            script.parentNode.removeChild(script);
+            delete window[script.id];
+        }
+    }
+}
+
 (() => {
-    const title_keywords = ["AMC 8", "AMC 10", "AMC 12", "AHSME", "AIME", "USAJMO", "USAMO", "IMO", "Alabama ARML TST", "APMO", "BMO", "Canadian MO", "Indonesia MO", "iTest", "JBMO", "Putnam", "UMO", "UNCO Math Contest II", "UNM-PNM Statewide High School Mathematics Contest II", "<END>"]
+    const title_keywords = [
+        "AMC 8", "AMC 10", "AMC 12", "AHSME", "AJHSME", "AIME", "USAJMO", "USAMO", "IMO", "Alabama ARML TST",
+        "APMO", "BMO", "Canadian MO", "Indonesia MO", "iTest", "JBMO", "Putnam", "UMO", "UNCO Math Contest II",
+        "UNM-PNM Statewide High School Mathematics Contest II",
+        "<END>"
+    ];
     let allPages = [];
     let allProblems = [];
     let maxYear = new Date().getFullYear();
@@ -91,111 +92,69 @@ async function jsonp_fetch(src, options = {}) {
     });
     let categoryPages = [];
     let theoremPages = [];
-    let testsList = `AMC 8, AMC 10, AMC 12, AIME, USAJMO, USAMO, IMO, AJHSME, AHSME`;
-    let validVersions = {
-        "AMC 10": ["A", "B", "Fall A", "Fall B"], "AMC 12": ["A", "B", "Fall A", "Fall B"], AIME: ["I", "II"],
+    let testsList = "AMC 8, AMC 10, AMC 12, AIME, USAJMO, USAMO, IMO, AJHSME, AHSME, Alabama ARML TST, APMO, BMO, Canadian MO, Indonesia MO, iTest, JBMO, Putnam, UMO, UNCO Math Contest II, UNM-PNM Statewide High School Mathematics Contest II";
+    //let testsList = `AMC 8, AMC 10, AMC 12, AIME, USAJMO, USAMO, IMO, AJHSME, AHSME`;
+    const validVersions = {
+        "AMC 10": ["A", "B", "Fall A", "Fall B"],
+        "AMC 12": ["A", "B", "Fall A", "Fall B"],
+        AIME: ["I", "II"],
     };
-    let validYears = {
-        "AMC 8": {
-            min: 1999, max: maxYear
-        }, "AMC 10": {
-            min: 2000, max: 2001
-        }, "AMC 10A": {
-            min: 2002, max: maxYear
-        }, "AMC 10B": {
-            min: 2002, max: maxYear
-        }, "AMC 10Fall A": {
-            min: 2021, max: 2021
-        }, "AMC 10Fall B": {
-            min: 2021, max: 2021
-        }, "AMC 12": {
-            min: 2000, max: 2001
-        }, "AMC 12A": {
-            min: 2002, max: maxYear
-        }, "AMC 12B": {
-            min: 2002, max: maxYear
-        }, "AMC 12Fall A": {
-            min: 2021, max: 2021
-        }, "AMC 12Fall B": {
-            min: 2021, max: 2021
-        }, AIME: {
-            min: 1983, max: 1999
-        }, AIMEI: {
-            min: 2000, max: maxYear
-        }, AIMEII: {
-            min: 2000, max: maxYear
-        }, USAJMO: {
-            min: 2010, max: maxYear
-        }, USAMO: {
-            min: 1972, max: maxYear
-        }, IMO: {
-            min: 1959, max: maxYear
-        }, AJHSME: {
-            min: 1985, max: 1998
-        }, AHSME: {
-            min: 1974, max: 1999
-        },
+
+    const validYears = {
+        "AMC 8": {min: 1999, max: maxYear},
+        "AMC 10": {min: 2000, max: 2001},
+        "AMC 10A": {min: 2002, max: maxYear},
+        "AMC 10B": {min: 2002, max: maxYear},
+        "AMC 10Fall A": {min: 2021, max: 2021},
+        "AMC 10Fall B": {min: 2021, max: 2021},
+        "AMC 12": {min: 2000, max: 2001},
+        "AMC 12A": {min: 2002, max: maxYear},
+        "AMC 12B": {min: 2002, max: maxYear},
+        "AMC 12Fall A": {min: 2021, max: 2021},
+        "AMC 12Fall B": {min: 2021, max: 2021},
+        AIME: {min: 1983, max: 1999},
+        AIMEI: {min: 2000, max: maxYear},
+        AIMEII: {min: 2000, max: maxYear},
+        USAJMO: {min: 2010, max: maxYear},
+        USAMO: {min: 1972, max: maxYear},
+        IMO: {min: 1959, max: maxYear},
+        AJHSME: {min: 1985, max: 1998},
+        AHSME: {min: 1974, max: 1999},
     };
-    let validNums = {
-        "AMC 8": {
-            min: 1, max: 25
-        }, "AMC 10": {
-            min: 1, max: 25
-        }, "AMC 12": {
-            min: 1, max: 25
-        }, AIME: {
-            min: 1, max: 15
-        }, USAJMO: {
-            min: 1, max: 6
-        }, USAMO: {
-            min: 1, max: 6
-        }, IMO: {
-            min: 1, max: 6
-        }, AJHSME: {
-            min: 1, max: 25
-        }, AHSME: {
-            min: 1, max: 30
-        },
+
+    const validNums = {
+        "AMC 8": {min: 1, max: 25},
+        "AMC 10": {min: 1, max: 25},
+        "AMC 12": {min: 1, max: 25},
+        AIME: {min: 1, max: 15},
+        USAJMO: {min: 1, max: 6},
+        USAMO: {min: 1, max: 6},
+        IMO: {min: 1, max: 6},
+        AJHSME: {min: 1, max: 25},
+        AHSME: {min: 1, max: 30},
     };
-    let whitelist = [{
-        value: "3D Geometry Problems", shortName: "3D Geo"
-    }, {
-        value: "Introductory Algebra Problems", shortName: "Intro Alg"
-    }, {
-        value: "Introductory Combinatorics Problems", shortName: "Intro Combo"
-    }, {
-        value: "Introductory Geometry Problems", shortName: "Intro Geo"
-    }, {
-        value: "Introductory Number Theory Problems", shortName: "Intro NT"
-    }, {
-        value: "Introductory Probability Problems", shortName: "Intro Prob"
-    }, {
-        value: "Introductory Trigonometry Problems", shortName: "Intro Trig"
-    }, {
-        value: "Intermediate Algebra Problems", shortName: "Int Alg"
-    }, {
-        value: "Intermediate Combinatorics Problems", shortName: "Int Combo"
-    }, {
-        value: "Intermediate Geometry Problems", shortName: "Int Geo"
-    }, {
-        value: "Intermediate Number Theory Problems", shortName: "Int NT"
-    }, {
-        value: "Intermediate Probability Problems", shortName: "Int Prob"
-    }, {
-        value: "Intermediate Trigonometry Problems", shortName: "Int Trig"
-    }, {
-        value: "Olympiad Algebra Problems", shortName: "Oly Alg"
-    }, {
-        value: "Olympiad Combinatorics Problems", shortName: "Oly Combo"
-    }, {
-        value: "Olympiad Geometry Problems", shortName: "Oly Geo"
-    }, {
-        value: "Olympiad Inequality Problems", shortName: "Oly Ineq"
-    }, {
-        value: "Olympiad Number Theory Problems", shortName: "Oly NT"
-    }, {
-        value: "Olympiad Trigonometry Problems", shortName: "Oly Trig"
-    },];
+
+    const whitelist = [
+        {value: "3D Geometry Problems", shortName: "3D Geo"},
+        {value: "Introductory Algebra Problems", shortName: "Intro Alg"},
+        {value: "Introductory Combinatorics Problems", shortName: "Intro Combo"},
+        {value: "Introductory Geometry Problems", shortName: "Intro Geo"},
+        {value: "Introductory Number Theory Problems", shortName: "Intro NT"},
+        {value: "Introductory Probability Problems", shortName: "Intro Prob"},
+        {value: "Introductory Trigonometry Problems", shortName: "Intro Trig"},
+        {value: "Intermediate Algebra Problems", shortName: "Int Alg"},
+        {value: "Intermediate Combinatorics Problems", shortName: "Int Combo"},
+        {value: "Intermediate Geometry Problems", shortName: "Int Geo"},
+        {value: "Intermediate Number Theory Problems", shortName: "Int NT"},
+        {value: "Intermediate Probability Problems", shortName: "Int Prob"},
+        {value: "Intermediate Trigonometry Problems", shortName: "Int Trig"},
+        {value: "Olympiad Algebra Problems", shortName: "Oly Alg"},
+        {value: "Olympiad Combinatorics Problems", shortName: "Oly Combo"},
+        {value: "Olympiad Geometry Problems", shortName: "Oly Geo"},
+        {value: "Olympiad Inequality Problems", shortName: "Oly Ineq"},
+        {value: "Olympiad Number Theory Problems", shortName: "Oly NT"},
+        {value: "Olympiad Trigonometry Problems", shortName: "Oly Trig"},
+    ];
 
     function subjectTag(tagData) {
         return `<tag title="${tagData.value}" contenteditable="false" spellcheck="false" tabindex="-1" class="tagify__tag " value="${tagData.value}">
@@ -364,14 +323,15 @@ async function jsonp_fetch(src, options = {}) {
 
     // Toggles settings
     (() => {
+        let $darkToggle = $("#dark-toggle");
         if (JSON.parse(localStorage.getItem("darkTheme"))) {
-            $("#dark-toggle").text("Dark theme");
+            $darkToggle.text("Dark theme");
         }
         if (JSON.parse(localStorage.getItem("darkTheme")) === false) {
-            $("#dark-toggle").text("Light theme");
+            $darkToggle.text("Light theme");
         }
 
-        $("#dark-toggle").on('click', () => {
+        $darkToggle.on('click', () => {
             document.body.removeAttribute("style");
             document.querySelector(".page-container").removeAttribute("style");
             if (JSON.parse(localStorage.getItem("darkTheme"))) {
@@ -379,19 +339,19 @@ async function jsonp_fetch(src, options = {}) {
 
                 localStorage.removeItem("darkTheme");
                 $("meta[name='color-scheme']").attr("content", "light dark");
-                $("#dark-toggle").text("System theme");
+                $darkToggle.text("System theme");
             } else if (JSON.parse(localStorage.getItem("darkTheme")) === null) {
                 $("#dark-stylesheet-link").remove();
 
                 localStorage.setItem("darkTheme", false);
                 $("meta[name='color-scheme']").attr("content", "light");
-                $("#dark-toggle").text("Light theme");
+                $darkToggle.text("Light theme");
             } else {
                 $("#stylesheet-link").after(`<link id="dark-stylesheet-link" href="dark.css" rel="stylesheet" />`);
 
                 localStorage.setItem("darkTheme", true);
                 $("meta[name='color-scheme']").attr("content", "dark");
-                $("#dark-toggle").text("Dark theme");
+                $darkToggle.text("Dark theme");
             }
         });
     })();
@@ -405,6 +365,8 @@ async function jsonp_fetch(src, options = {}) {
     })();
 
     async function fetchProblems(totalCount, inputProblemTitles, skipProblems = null, pages = null) {
+        cleanupJsonpFetch();
+
         let problems = [];
         let redirIndex = {};
         let problemsSet = new Set()
@@ -413,7 +375,7 @@ async function jsonp_fetch(src, options = {}) {
 
         function progress() {
             if (counter < totalCount) counter += 1
-            $(".loading-bar").css("width", `${Math.max(problems.length, counter) / totalCount * 80}%`);
+            $(".loading-bar").css("width", `${Math.max(problems.length, counter) / totalCount * 70}%`);
         }
 
         const apiEndpoint = "https://artofproblemsolving.com/wiki/api.php";
@@ -425,7 +387,7 @@ async function jsonp_fetch(src, options = {}) {
             while (responseList.length < paramsList.length) {
                 const range = 50;
                 let responseListSlice = await Promise.all(paramsList.slice(begin, begin + range)
-                    .map((params) => jsonp_fetch(`${apiEndpoint}?${params}&origin=*`, {
+                    .map((params) => jsonpFetch(`${apiEndpoint}?${params}&origin=*`, {
                         'onSuccess': progress, 'timout': Math.max(range * 2000, 50000)
                     })));
                 responseList = responseList.concat(responseListSlice)
@@ -687,7 +649,7 @@ async function jsonp_fetch(src, options = {}) {
         let apiEndpoint = "https://artofproblemsolving.com/wiki/api.php";
         let params = `action=parse&page=${pagename}&format=json`;
 
-        let response = await jsonp_fetch(`${apiEndpoint}?${params}&origin=*`);
+        let response = await jsonpFetch(`${apiEndpoint}?${params}&origin=*`);
         let json = await response.json();
 
         if (json?.parse) {
@@ -706,7 +668,7 @@ async function jsonp_fetch(src, options = {}) {
                 pagename = redirPage;
 
                 params = `action=parse&page=${redirPage}&format=json`;
-                response = await jsonp_fetch(`${apiEndpoint}?${params}&origin=*`);
+                response = await jsonpFetch(`${apiEndpoint}?${params}&origin=*`);
                 json = await response.json();
                 problemText = (json?.parse) ? latexer(json.parse.text["*"]) : '';
             }
@@ -822,7 +784,7 @@ async function jsonp_fetch(src, options = {}) {
         let apiEndpoint = "https://artofproblemsolving.com/wiki/api.php";
         let params = `action=parse&page=${answersTitle}&format=json`;
 
-        let response = await jsonp_fetch(`${apiEndpoint}?${params}&origin=*`);
+        let response = await jsonpFetch(`${apiEndpoint}?${params}&origin=*`);
         let json = await response.json();
         let answerText = json.parse?.text["*"];
         let problemNum = computeNumber(pagename);
@@ -916,7 +878,7 @@ async function jsonp_fetch(src, options = {}) {
         console.log(uniqueTests);
         let paramsList = uniqueTests.map((test) => `action=parse&page=${test} Answer Key&format=json`);
 
-        let responseList = await Promise.all(paramsList.map((params) => jsonp_fetch(`${apiEndpoint}?${params}&origin=*`)));
+        let responseList = await Promise.all(paramsList.map((params) => jsonpFetch(`${apiEndpoint}?${params}&origin=*`)));
         console.log(responseList);
 
         let jsonList = await Promise.all(responseList.map((response) => response.json()));
@@ -1063,7 +1025,7 @@ async function jsonp_fetch(src, options = {}) {
                 let apiEndpoint = "https://artofproblemsolving.com/wiki/api.php";
                 let params = `action=parse&page=AMC_historical_results&format=json`;
 
-                let response = await jsonp_fetch(`${apiEndpoint}?${params}&origin=*`);
+                let response = await jsonpFetch(`${apiEndpoint}?${params}&origin=*`);
                 let json = await response.json();
                 let statsText = json.parse?.text["*"];
                 let statsList = [];
@@ -1143,14 +1105,14 @@ async function jsonp_fetch(src, options = {}) {
                     let params = `action=query&list=categorymembers` + `&cmtitle=Category:${subject}&cmlimit=max&format=json`;
                     let paramsContinue;
 
-                    let response = await jsonp_fetch(`${apiEndpoint}?${params}&origin=*`);
+                    let response = await jsonpFetch(`${apiEndpoint}?${params}&origin=*`);
                     let json = await response.json();
 
                     if (json.query.categorymembers?.[0]) {
                         addPagesFromJSON(json.query.categorymembers);
                         while (json?.continue) {
                             paramsContinue = params + `&cmcontinue=${json.continue.cmcontinue}`;
-                            response = await jsonp_fetch(`${apiEndpoint}?${paramsContinue}&origin=*`);
+                            response = await jsonpFetch(`${apiEndpoint}?${paramsContinue}&origin=*`);
                             json = await response.json();
                             addPagesFromJSON(json.query.categorymembers);
                         }
@@ -1167,7 +1129,7 @@ async function jsonp_fetch(src, options = {}) {
     }
 
     function matchesOptions(problem, tests, yearsFrom, yearsTo, diffFrom, diffTo) {
-        if (!/^\d{4}.*Problems\/Problem \d+$/.test(problem)) return false;
+        if (!/^\d{4}.*Problems\/Problem[\s_]\D*\d+$/.test(problem)) return false;
 
         let problemTest = computeTest(problem);
 
@@ -2277,19 +2239,19 @@ async function jsonp_fetch(src, options = {}) {
             let apiEndpoint = "https://artofproblemsolving.com/wiki/api.php";
 
             let params = `action=parse&page=${encodeURIComponent(underscores(search))}&format=json`;
-            let response = await jsonp_fetch(`${apiEndpoint}?${params}&origin=*`);
+            let response = await jsonpFetch(`${apiEndpoint}?${params}&origin=*`);
             let json = await response.json();
             if (json?.parse) pageExists = true;
 
             params = `action=query&list=search&srwhat=text&srsearch=${search}` + `&srlimit=max&srqiprofile=wsum_inclinks_pv&format=json`;
-            response = await jsonp_fetch(`${apiEndpoint}?${params}&origin=*`);
+            response = await jsonpFetch(`${apiEndpoint}?${params}&origin=*`);
             json = await response.json();
 
             if (clickedTimes === clickedTimesThen) for (let page of json.query.search) enterResult(page);
 
             while (json?.continue) {
                 let paramsContinue = params + `&sroffset=${json.continue.sroffset}`;
-                response = await jsonp_fetch(`${apiEndpoint}?${paramsContinue}&origin=*`);
+                response = await jsonpFetch(`${apiEndpoint}?${paramsContinue}&origin=*`);
                 json = await response.json();
 
                 for (let page of json.query.search) enterResult(page);
@@ -2313,7 +2275,7 @@ async function jsonp_fetch(src, options = {}) {
             let apiEndpoint = "https://artofproblemsolving.com/wiki/api.php";
             let params = `action=query&list=categorymembers&cmtitle=Category:Theorems` + `&cmlimit=max&format=json`;
 
-            let response = await jsonp_fetch(`${apiEndpoint}?${params}&origin=*`);
+            let response = await jsonpFetch(`${apiEndpoint}?${params}&origin=*`);
             let json = await response.json();
 
             for (let page of json.query.categorymembers) theoremPages.push(page.title);
@@ -2656,7 +2618,7 @@ async function jsonp_fetch(src, options = {}) {
 
                         let answersTitle = `${newProblem.title?.split(" Problems/Problem")[0]} Answer Key`;
                         params = `action=parse&page=${answersTitle}&format=json`;
-                        response = await jsonp_fetch(`${apiEndpoint}?${params}&origin=*`);
+                        response = await jsonpFetch(`${apiEndpoint}?${params}&origin=*`);
                         json = await response.json();
 
                         $(`.answer-box[index=${replacedIndex}]`).remove();
@@ -3201,8 +3163,7 @@ async function jsonp_fetch(src, options = {}) {
             $("#main-button-container").after(`${notes}`);
             collapseText();
 
-            if (validProblem(lastParam)) await addProblem(lastParam, true);
-            else await addArticle(lastParam, true);
+            if (validProblem(lastParam)) await addProblem(lastParam, true); else await addArticle(lastParam, true);
         } else if (searchParams.get("problems")) {
             $("#main-button-container").after(`${notes}`);
             addUrlBatch();
@@ -3246,7 +3207,7 @@ async function jsonp_fetch(src, options = {}) {
     // Bonus
     /*
               let subtitleClicked = 0;
-    
+
               $(".subtitle").on('click',() => {
                 subtitleClicked++;
                 let text;

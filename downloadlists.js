@@ -5,10 +5,11 @@ import fs from "fs";
     let allProblems = [];
     let numPages = 16000;
 
-    let validProblem = (problem) => problem.match(/^\d{4}[\s_].*[\s_][Pp]roblems\/[Pp]roblem [A-Z]?\d+$/);
+
+    let validProblem = (problem) => problem.match(/^\d{4}[\s_].*[\s_][Pp]roblems\/[Pp]roblem[_\s]\D*\d+$/);
 
     let computeTest = (problem) => problem
-        .match(/(\d{4}[_\s])(.*)([\s_][Pp]roblems)/)[2]
+        .match(/(\d{4}[\s_])(.*)([\s_][Pp]roblems)/)[2]
         .replace(/AMC (10|12)[A-Z]/, "AMC $1")
         .replace(/AIME I+/, "AIME")
         .replace(/AJHSME/, "AMC 8");
