@@ -1,68 +1,92 @@
-import fs from "fs";
+import fs from "fs/promises";
+import fetch from "node-fetch";
+import {createWriteStream} from "fs";
 
-(async () => {
-    let allPages = [];
-    let allProblems = [];
-    let numPages = 16000;
+const BATCH_SIZE = 50;
+const API_ENDPOINT = "https://artofproblemsolving.com/wiki/api.php";
 
+const memoize = (fn) => {
+    const cache = new Map();
+    return (arg) => {
+        if (!cache.has(arg)) {
+            cache.set(arg, fn(arg));
+        }
+        return cache.get(arg);
+    };
+};
 
-    let validProblem = (problem) => problem.match(/^\d{4}[\s_].*[\s_][Pp]roblems\/[Pp]roblem[_\s]\D*\d+$/);
+const validProblem = memoize((problem) =>
+    /^\d{4}[\s_].*[\s_][Pp]roblems\/[Pp]roblem[_\s]\D*\d+$/.test(problem)
+);
 
-    let computeTest = (problem) => problem
-        .match(/(\d{4}[\s_])(.*)([\s_][Pp]roblems)/)[2]
+const computeTest = memoize((problem) =>
+    problem.match(/(\d{4}[\s_])(.*)([\s_][Pp]roblems)/)[2]
         .replace(/AMC (10|12)[A-Z]/, "AMC $1")
         .replace(/AIME I+/, "AIME")
-        .replace(/AJHSME/, "AMC 8");
-    let computeYear = (problem) => problem.match(/^\d{4}/)[0];
-    let computeNumber = (problem) => problem.match(/\d+$/)[0];
+        .replace(/AJHSME/, "AMC 8")
+);
 
-    let sortProblems = (problems) => problems.sort(
-        (a, b) =>
-            Math.sign(computeYear(a) - computeYear(b)) ||
-            computeTest(a).localeCompare(computeTest(b)) ||
-            Math.sign(computeNumber(a) - computeNumber(b))
-    );
+const computeYear = memoize((problem) => problem.match(/^\d{4}/)[0]);
+const computeNumber = memoize((problem) => problem.match(/\d+$/)[0]);
 
-    console.log("Preloading all wiki pages, allow around 15 seconds...");
-    let apiEndpoint = "https://artofproblemsolving.com/wiki/api.php";
-    let params = `action=query&list=allpages&aplimit=max&format=json`;
+const sortProblems = (problems) => [...problems].sort((a, b) =>
+    Math.sign(computeYear(a) - computeYear(b)) ||
+    computeTest(a).localeCompare(computeTest(b)) ||
+    Math.sign(computeNumber(a) - computeNumber(b))
+);
+
+const fetchPages = async () => {
+    const allPages = new Set();
+    const allProblems = new Set();
     let json = null;
-    do {
-        console.log(`${Math.round((allPages.length / numPages) * 100)}% loaded...`);
-        const paramsContinue = params + (json ? `&apcontinue=${json.continue.apcontinue}` : ``);
-        //console.log(paramsContinue)
-        let response = await fetch(`${apiEndpoint}?${paramsContinue}&origin=*`);
-        json = await response.json();
-        for (let page of json?.query.allpages) {
-            if (page.title.charAt(0) !== "/") allPages.push(page.title);
-            if (validProblem(page.title)) allProblems.push(page.title);
-        }
-    } while (json?.continue)
-    console.log(`Finished loading Special:AllPages (${allPages.length} pages).`);
+    const params = `action=query&list=allpages&aplimit=max&format=json`;
 
-    allProblems = sortProblems([...new Set(allProblems)]);
-    allPages = [...new Set(allPages)];
+    do {
+        const paramsContinue = params + (json?.continue ? `&apcontinue=${json.continue.apcontinue}` : '');
+        const response = await fetch(`${API_ENDPOINT}?${paramsContinue}&origin=*`);
+        json = await response.json();
+
+        for (let page of json?.query.allpages) {
+            if (page.title.charAt(0) !== "/") {
+                allPages.add(page.title);
+                if (validProblem(page.title)) {
+                    allProblems.add(page.title);
+                }
+            }
+        }
+
+        console.log(`${Math.round((allPages.size / 16000) * 100)}% loaded...`);
+    } while (json?.continue);
+
+    return {allPages: [...allPages], allProblems: sortProblems(allProblems)};
+};
+
+const streamWrite = (filename, data) => {
+    return new Promise((resolve, reject) => {
+        const writeStream = createWriteStream(filename);
+        writeStream.write(JSON.stringify(data, null, 2));
+        writeStream.end();
+        writeStream.on('finish', resolve);
+        writeStream.on('error', reject);
+    });
+};
+
+(async () => {
     try {
-        fs.writeFileSync(
-            "data/allpages.json",
-            JSON.stringify(allPages, undefined, 2)
-        );
-        fs.writeFileSync(
-            "data/allproblems.json",
-            JSON.stringify(allProblems, undefined, 2)
-        );
+        const {allPages, allProblems} = await fetchPages();
+
+        await Promise.all([
+            streamWrite('data/allpages.json', allPages),
+            streamWrite('data/allproblems.json', allProblems)
+        ]);
+
+        const roundedLength = Math.ceil(allPages.length / 500) * 500;
+        const code = (await fs.readFile('downloadlists.js', 'utf8'))
+            .replace(/let numPages = \d*?;/, `let numPages = ${roundedLength};`);
+
+        await fs.writeFile('downloadlists.js', code);
+
     } catch (err) {
-        console.error(err);
-    }
-    try {
-        let roundedLength = Math.ceil(allPages.length / 500) * 500;
-        let code = fs.readFileSync("downloadlists.js", "utf8");
-        code = code.replace(
-            /let numPages = \d*?;/,
-            `let numPages = ${roundedLength};`
-        );
-        fs.writeFileSync("downloadlists.js", code);
-    } catch (err) {
-        console.error(err);
+        console.error('Error:', err);
     }
 })();

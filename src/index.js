@@ -51,17 +51,24 @@ async function jsonpFetchOnce(src, options = {}) {
     });
 }
 
-
 async function jsonpFetch(src, options = {}) {
-    if (null === options) options = {}
-    if (!options.timeout) options.timeout = 20000;
-    let promise;
-    for (let i = 0; i < 3; ++i) {
-        promise = await jsonpFetchOnce(src, options);
-        if (promise?.status !== 408) return promise;
+    const MAX_RETRIES = 3;
+    const defaultOptions = {timeout: 20000};
+    const fetchOptions = {...defaultOptions, ...options};
+
+    let response;
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        try {
+            response = await jsonpFetchOnce(src, fetchOptions);
+            if (response?.status !== 408) {
+                return response;
+            }
+        } catch (error) {
+        }
     }
-    return promise;
+    return response;
 }
+
 
 function cleanupJsonpFetch(callbackNamePrefix = 'jsonpFetch_') {
     for (const script of document.scripts) {
@@ -1150,13 +1157,12 @@ function cleanupJsonpFetch(callbackNamePrefix = 'jsonpFetch_') {
 
     //1997_AJHSME_Problems/Problem_22
     //2009 UNCO Math Contest II Problems/Problem 11
-    const computeTest = (problem) => problem
-        .match(/(\d{4})[\s_](.+)[\s_](Problems)/)[2]
+    const computeTest = (problem) => problem?.match(/(\d{4})[\s_](.+)[\s_](Problems)/).at(2)
         .replace(/AMC (10|12)[AB]/, "AMC $1")
         .replace(/AIME I+/, "AIME")
         .replace(/AJHSME/, "AMC 8");
-    const computeYear = (problem) => problem.match(/^\d{4}/)[0];
-    const computeNumber = (problem) => problem.match(/\d+$/)[0];
+    const computeYear = (problem) => problem?.match(/^\d{4}/)?.at(0);
+    const computeNumber = (problem) => problem?.match(/\d+$/)?.at(0);
 
     function computeDifficulty(test, num, year) {
         let diff = null;
